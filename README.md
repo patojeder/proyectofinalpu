@@ -1,45 +1,45 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+# VENTA-STOCK
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+Base del proyecto final: ASP.NET Core MVC en .NET 10 y SQL Server, con Entity Framework Core Database First.
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+## Proyectos
 
----
+- **VentaStock.Domain**: entidades, reglas de negocio y contratos de repositorios (`Contracts/`).
+- **VentaStock.Application**: interfaces de servicios (`Contracts/`) e implementaciones (`Services/`).
+- **VentaStock.Infrastructure**: contexto generado desde SQL Server y repositorios EF Core.
+- **VentaStock.Web**: presentación MVC y registro de dependencias.
 
-## Edit a file
+Las bibliotecas tienen únicamente sus puntos de registro de DI, sin lógica de negocio, y Web conserva la plantilla MVC estándar. No hay conexión a base de datos ni funcionalidades de negocio implementadas.
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+## Ejecución
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+Requiere SDK .NET 10 y runtime ASP.NET Core 10.
 
----
+```bash
+dotnet restore VentaStock.sln
+dotnet build VentaStock.sln
+dotnet run --project src/VentaStock.Web --launch-profile https
+```
 
-## Create a file
+El esquema SQL se definirá antes de generar entidades y DbContext. El proveedor SQL Server y EF Core Design están referenciados en sus proyectos. Registrar servicios y repositorios en DI cuando se implementen; configurar la conexión con user-secrets o variables de entorno.
 
-Next, you’ll add a new file to this repository.
+## Configuración y secretos
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+- Desarrollo: User Secrets, almacenados fuera del repositorio. Cada integrante configura sus propios valores.
+- Despliegue: variables de entorno del proceso o servicio. `ConnectionStrings__VentaStock` corresponde a `ConnectionStrings:VentaStock`; `Jwt__SigningKey` a `Jwt:SigningKey`.
+- `.env.example` contiene únicamente marcadores; `.env` está ignorado. ASP.NET Core no carga archivos `.env` automáticamente.
+- Las variables de entorno tienen prioridad sobre User Secrets y appsettings. Los argumentos de línea de comandos tienen prioridad aún mayor.
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+Ejemplo ilustrativo (reemplazar el marcador; no contiene una conexión real):
 
----
+```bash
+dotnet user-secrets set "ConnectionStrings:VentaStock" "CADENA_LOCAL" --project src/VentaStock.Web
+```
 
-## Clone a repository
+User Secrets se carga automáticamente en Development y no cifra los valores. No poner secretos en appsettings, launchSettings ni en el repositorio. La base todavía no consulta SQL Server ni utiliza JWT; estas claves son convenciones para sus futuras implementaciones.
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+## Inyección de dependencias
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+`Program.cs` llama a `AddApplication()` y `AddInfrastructure(builder.Configuration)`. Cada capa centraliza sus registros en `DependencyInjection.cs`, siguiendo el patrón de TSTCo.
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+Agregar servicios y repositorios con `AddScoped<Interfaz, Implementacion>()` cuando existan. El contexto se registrará con `AddDbContext` después de generar el esquema Database First. `ILogger<T>` lo proporciona el host ASP.NET Core; no necesita un registro manual.
