@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VentaStock.Domain.Contracts;
+using VentaStock.Infrastructure.Data;
+using VentaStock.Infrastructure.Repositories;
 
 namespace VentaStock.Infrastructure;
 
@@ -9,8 +13,9 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registrar el DbContext generado y los repositorios al implementarlos.
-        // La conexión se obtendrá de configuration.GetConnectionString("VentaStock").
+        services.AddDbContext<VentaStockDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("VentaStock")));
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         return services;
     }
 }
