@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using VentaStock.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VentaStock.Web.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
     public IActionResult Index()
