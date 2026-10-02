@@ -6,7 +6,7 @@ public class UserDto
     public string NombreUsuario { get; set; } = string.Empty;
     public string Mail { get; set; } = string.Empty;
     public int IdRol { get; set; }
-    public string RolNombre { get; set; } = string.Empty;
+    public string Rol { get; set; } = string.Empty;
     public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
 }

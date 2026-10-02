@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddDbContext<VentaStockDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("VentaStock")));
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
         return services;
     }
 }

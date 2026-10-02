@@ -8,15 +8,22 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // Mapeo de Usuario -> UsuarioSesionDto
+        // Sesión / Login
         CreateMap<Usuario, UsuarioSesionDto>()
-            // IdUsuario, NombreUsuario y Mail se mapean solos por llamarse igual
-            // Rol se obtiene del NombreRol de la relación IdRolNavigation
-            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation != null ? src.IdRolNavigation.Nombre : string.Empty))
-            // Permisos se proyecta desde la colección IdPermisos
-            .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src =>
-                src.IdRolNavigation != null
-                    ? src.IdRolNavigation.IdPermisos.Select(p => p.Nombre).ToList()
-                    : new List<string>()));
+            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre))
+            .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src => src.IdRolNavigation.IdPermisos.Select(p => p.Nombre).ToList()));
+
+        // Listado general
+        CreateMap<Usuario, UserDto>()
+            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
+
+        // Formulario de edición
+        CreateMap<Usuario, EditUserDto>()
+            .ForMember(dest => dest.NewPassword, opt => opt.Ignore())
+            .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore());
+
+        // Pantalla de confirmación de eliminación
+        CreateMap<Usuario, DeleteUserDto>()
+            .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
     }
 }
