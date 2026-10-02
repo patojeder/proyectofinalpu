@@ -4,5 +4,5 @@ namespace VentaStock.Application.Contracts;
 
 public interface IAuthService
 {
-    Task<UsuarioSesionDto?> ValidarCredencialesAsync(LoginRequestDto request, CancellationToken cancellationToken = default);
+    Task<UsuarioSesionDto?> ValidarCredencialesAsync(LoginRequestDto request);
 }
