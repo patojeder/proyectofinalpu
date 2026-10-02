@@ -1,0 +1,46 @@
+@model VentaStock.Application.DTOs.EditCategoryDto
+
+@{
+    ViewData["Title"] = "Editar Categoría";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">Editar Categoría</h3>
+                    <p class="text-muted mb-4">Modifique la información de la categoría seleccionada.</p>
+
+                    <form asp-action="Edit" asp-route-id="@Model.IdCategoria" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IdCategoria" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label fw-semibold">Nombre</label>
+                            <input asp-for="Nombre" class="form-control" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Descripcion" class="form-label fw-semibold">Descripción (Opcional)</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

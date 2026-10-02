@@ -8,7 +8,7 @@ using VentaStock.Web.Security;
 
 namespace VentaStock.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Owner,UserManager")]
 [UserAccessDenied]
 public class UserController : Controller
 {

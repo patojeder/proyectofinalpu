@@ -14,14 +14,32 @@ public partial class VentaStockDbContext : DbContext
 
     public virtual DbSet<Permiso> Permisos { get; set; }
 
-    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
-
     public virtual DbSet<Rol> Rols { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
+    public virtual DbSet<Categoria> Categorias { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Categoria>(entity =>
+        {
+            entity.HasKey(e => e.IdCategoria);
+
+            entity.ToTable("categoria");
+
+            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsRequired()
+                .HasColumnName("nombre");
+            entity.Property(e => e.Descripcion)
+                .HasColumnName("descripcion");
+            entity.Property(e => e.Activo)
+                .HasDefaultValue(true)
+                .HasColumnName("activo");
+        });
+
         modelBuilder.Entity<Permiso>(entity =>
         {
             entity.HasKey(e => e.IdPermiso).HasName("PK__permiso__228F224F47C86BBC");
@@ -35,25 +53,6 @@ public partial class VentaStockDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .HasColumnName("nombre");
-        });
-
-        modelBuilder.Entity<RefreshToken>(entity =>
-        {
-            entity.HasKey(e => e.IdRefreshToken).HasName("PK__refresh___7589BBDFDB0A8FD0");
-
-            entity.ToTable("refresh_token");
-
-            entity.Property(e => e.IdRefreshToken).HasColumnName("id_refresh_token");
-            entity.Property(e => e.FechaExpiracion).HasColumnName("fecha_expiracion");
-            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
-            entity.Property(e => e.Revocado).HasColumnName("revocado");
-            entity.Property(e => e.Token)
-                .HasMaxLength(255)
-                .HasColumnName("token");
-
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.RefreshTokens)
-                .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK_refresh_token_usuario");
         });
 
         modelBuilder.Entity<Rol>(entity =>
