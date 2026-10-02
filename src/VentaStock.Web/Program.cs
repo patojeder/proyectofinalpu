@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using VentaStock.Application;
 using VentaStock.Infrastructure;
+using VentaStock.Application.Contracts;
+using VentaStock.Application.Security;
+using VentaStock.Web.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +24,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "VentaStock.Session";  
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in UserPermissions.All)
+    {
+        options.AddPolicy(permission, policy => policy.RequireAuthenticatedUser()
+            .RequireAssertion(context => context.User.IsInRole(UserPermissions.OwnerRole)
+                || context.User.HasClaim("Permiso", permission)));
+    }
+});
 
 var app = builder.Build();
 

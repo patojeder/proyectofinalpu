@@ -38,6 +38,8 @@
                             <span asp-validation-for="IdRol" class="text-danger small"></span>
                         </div>
 
+                        @if (CurrentUser.HasPermission(UserPermissions.ResetPassword))
+                        {
                         <hr class="my-4" />
                         <h6 class="text-muted mb-3">Cambio de Contraseña (dejar vacío para mantener la actual)</h6>
 
@@ -54,6 +56,8 @@
                                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                             </div>
                         </div>
+
+                        }
 
                         <div class="d-flex justify-content-between mt-4">
                             <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
