@@ -1,4 +1,3 @@
--- 1. Crear la base de datos si no existe
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'VentaStockDb')
 BEGIN
     CREATE DATABASE VentaStockDb;
@@ -16,7 +15,6 @@ IF OBJECT_ID('dbo.usuario', 'U') IS NOT NULL DROP TABLE dbo.usuario;
 IF OBJECT_ID('dbo.rol', 'U') IS NOT NULL DROP TABLE dbo.rol;
 GO
 
--- 3. Tabla: rol
 CREATE TABLE dbo.rol (
     id_rol INT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(50) NOT NULL,
@@ -24,7 +22,6 @@ CREATE TABLE dbo.rol (
 );
 GO
 
--- 4. Tabla: permiso
 CREATE TABLE dbo.permiso (
     id_permiso INT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(100) NOT NULL,
@@ -32,7 +29,6 @@ CREATE TABLE dbo.permiso (
 );
 GO
 
--- 5. Tabla: rol_permiso (Intermedia N:M)
 CREATE TABLE dbo.rol_permiso (
     id_rol INT NOT NULL,
     id_permiso INT NOT NULL,
@@ -42,7 +38,6 @@ CREATE TABLE dbo.rol_permiso (
 );
 GO
 
--- 6. Tabla: usuario
 CREATE TABLE dbo.usuario (
     id_usuario INT IDENTITY(1,1) PRIMARY KEY,
     id_rol INT NOT NULL,
@@ -55,7 +50,6 @@ CREATE TABLE dbo.usuario (
 );
 GO
 
--- 7. Tabla: refresh_token
 CREATE TABLE dbo.refresh_token (
     id_refresh_token INT IDENTITY(1,1) PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -66,7 +60,6 @@ CREATE TABLE dbo.refresh_token (
 );
 GO
 
--- 8. Datos iniciales de Roles y Permisos
 INSERT INTO dbo.rol (nombre, es_personalizado) 
 VALUES ('Administrador', 0), ('Vendedor', 0);
 
@@ -77,12 +70,10 @@ VALUES
 ('STOCK_ADMIN', 'Permite gestionar stock y productos'),
 ('USUARIOS_ADMIN', 'Permite administrar cuentas de usuarios');
 
--- Asignar permisos al Administrador (id_rol = 1)
 INSERT INTO dbo.rol_permiso (id_rol, id_permiso)
 SELECT 1, id_permiso FROM dbo.permiso;
 
 -- 9. Insertar usuario de prueba (contraseña: prueba123)
--- Hash BCrypt para 'prueba123': $2a$11$qN15wZg6n4qEwVfK03J5Uugz.Xvj2T6zNqE90T0K1Xp2mN9.XGf9y
 INSERT INTO dbo.usuario (id_rol, nombre_usuario, password_hash, mail, activo, fecha_creacion)
 VALUES (
     1, 

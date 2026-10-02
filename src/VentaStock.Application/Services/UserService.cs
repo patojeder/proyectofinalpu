@@ -109,16 +109,25 @@ public class UserService : IUserService
         if (await _userRepository.ExistsMailAsync(dto.Mail.Trim(), excludeId: dto.IdUsuario))
             throw new InvalidOperationException("El correo electrónico ya está siendo utilizado por otra cuenta.");
 
-        existingUser.NombreUsuario = dto.NombreUsuario.Trim();
-        existingUser.Mail = dto.Mail.Trim();
-        existingUser.IdRol = dto.IdRol;
+        var passwordHash = existingUser.PasswordHash;
 
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
         {
-            existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         }
 
-        await _userRepository.UpdateAsync(existingUser);
+        // Conservar el rol de la entidad seguida por EF hasta validar el último Dueño.
+        var proposedUser = new Usuario
+        {
+            IdUsuario = existingUser.IdUsuario,
+            NombreUsuario = dto.NombreUsuario.Trim(),
+            Mail = dto.Mail.Trim(),
+            IdRol = dto.IdRol,
+            Activo = existingUser.Activo,
+            PasswordHash = passwordHash
+        };
+
+        await _userRepository.UpdateAsync(proposedUser);
     }
 
     public async Task DeleteAsync(int userId)
