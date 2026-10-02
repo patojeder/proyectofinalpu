@@ -24,6 +24,6 @@ public class MappingProfile : Profile
 
         // Pantalla de confirmación de eliminación
         CreateMap<Usuario, DeleteUserDto>()
-            .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
+            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
     }
 }

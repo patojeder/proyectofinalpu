@@ -7,11 +7,11 @@ using VentaStock.Application.DTOs;
 namespace VentaStock.Web.Controllers;
 
 [Authorize]
-public class UsersController : Controller
+public class UserController : Controller
 {
     private readonly IUserService _userService;
 
-    public UsersController(IUserService userService)
+    public UserController(IUserService userService)
     {
         _userService = userService;
     }

@@ -19,19 +19,20 @@ public class UserRepository : IUserRepository
         return await _context.Usuarios
             .Include(u => u.IdRolNavigation)
                 .ThenInclude(r => r.IdPermisos)
-            .FirstOrDefaultAsync(u => u.NombreUsuario == username);
+            .FirstOrDefaultAsync(u => u.NombreUsuario == username && u.Activo);
     }
 
     public async Task<Usuario?> GetByIdAsync(int userId)
     {
         return await _context.Usuarios
             .Include(u => u.IdRolNavigation)
-            .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+            .FirstOrDefaultAsync(u => u.IdUsuario == userId && u.Activo);
     }
 
     public async Task<IEnumerable<Usuario>> GetAllAsync()
     {
         return await _context.Usuarios
+            .Where(u => u.Activo) // <-- Este filtro excluye los dados de baja
             .Include(u => u.IdRolNavigation)
             .AsNoTracking()
             .ToListAsync();
@@ -72,7 +73,7 @@ public class UserRepository : IUserRepository
         {
             var trackedUser = await _context.Usuarios.FindAsync(user.IdUsuario);
             if (trackedUser is null)
-                throw new InvalidOperationException($"User with ID {user.IdUsuario} was not found.");
+                throw new InvalidOperationException($"No se encontro al usuario con id {user.IdUsuario}.");
 
             trackedUser.NombreUsuario = user.NombreUsuario;
             trackedUser.Mail = user.Mail;
@@ -103,6 +104,7 @@ public class UserRepository : IUserRepository
             if (user is null) return;
 
             user.Activo = false;
+            _context.Entry(user).Property(u => u.Activo).IsModified = true;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
