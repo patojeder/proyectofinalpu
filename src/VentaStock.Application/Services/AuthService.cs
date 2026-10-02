@@ -8,18 +8,18 @@ namespace VentaStock.Application.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
-    public AuthService(IUsuarioRepository usuarioRepository, IMapper mapper)
+    public AuthService(IUserRepository userRepository, IMapper mapper)
     {
-        _usuarioRepository = usuarioRepository;
+        _userRepository = userRepository;
         _mapper = mapper;
     }
 
-    public async Task<UsuarioSesionDto?> ValidarCredencialesAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<UsuarioSesionDto?> ValidarCredencialesAsync(LoginRequestDto request)
     {
-        var usuario = await _usuarioRepository.ObtenerPorNombreUsuarioAsync(request.NombreUsuario, cancellationToken);
+        var usuario = await _userRepository.GetByUsernameAsync(request.NombreUsuario);
 
         if (usuario == null || !usuario.Activo)
         {
