@@ -21,7 +21,6 @@ public class UserController : Controller
         _currentUser = currentUser;
     }
 
-    // GET: /User
     [Authorize(Policy = UserPermissions.Read)]
     public async Task<IActionResult> Index()
     {
@@ -29,7 +28,6 @@ public class UserController : Controller
         return View(users);
     }
 
-    // GET: /User/Create
     [Authorize(Policy = UserPermissions.Create)]
     public async Task<IActionResult> Create()
     {
@@ -37,7 +35,6 @@ public class UserController : Controller
         return View(new CreateUserDto());
     }
 
-    // POST: /User/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = UserPermissions.Create)]
@@ -63,7 +60,6 @@ public class UserController : Controller
         }
     }
 
-    // GET: /User/Edit/5
     [Authorize(Policy = UserPermissions.Update)]
     public async Task<IActionResult> Edit(int id)
     {
@@ -77,7 +73,6 @@ public class UserController : Controller
         return View(dto);
     }
 
-    // POST: /User/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = UserPermissions.Update)]
@@ -108,7 +103,6 @@ public class UserController : Controller
         }
     }
 
-    // GET: /User/Delete/5
     [Authorize(Policy = UserPermissions.Deactivate)]
     public async Task<IActionResult> Delete(int id)
     {
@@ -121,7 +115,6 @@ public class UserController : Controller
         return View(dto);
     }
 
-    // POST: /User/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = UserPermissions.Deactivate)]
@@ -144,7 +137,6 @@ public class UserController : Controller
         ? RedirectToAction(nameof(Index))
         : RedirectToAction("Index", "Home");
 
-    // Helper privado para poblar el <select> de Roles
     private async Task CargarRolesAsync(int? selectedRoleId = null)
     {
         var roles = await _userService.GetRolesForSelectAsync();

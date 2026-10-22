@@ -1,8 +1,8 @@
--- Upgrade the current Spanish-named test schema. Not for the English schema.
--- Run once in the application database. No tables/users/passwords are deleted.
--- After applying, logout and login again to issue cookies with the new claims.
--- Administrador is explicitly migrated to Owner; UserManager is added.
--- USUARIOS_ADMIN is not accepted by the application after this change.
+-- Actualizar el esquema de prueba con nombres en español; no usar con el esquema en inglés.
+-- Ejecutar en la base de la aplicación. No se eliminan tablas, usuarios ni contraseñas.
+-- Después de aplicarlo, cerrar sesión y volver a ingresar para actualizar los claims.
+-- Administrador pasa a llamarse Owner y se agrega UserManager.
+-- La aplicación deja de aceptar el permiso USUARIOS_ADMIN.
 SET XACT_ABORT ON;
 
 IF DB_NAME() IN (N'master', N'model', N'msdb', N'tempdb')
@@ -61,7 +61,7 @@ BEGIN TRY
             WHERE rp.id_rol = r.id_rol AND rp.id_permiso = p.id_permiso
         );
 
-    -- Custom roles receive no automatic grants: assign individual permissions explicitly.
+    -- Asignar permisos individuales explícitamente a los roles personalizados.
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH

@@ -7,6 +7,8 @@ namespace VentaStock.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
+    private const string OwnerRoleName = "Owner";
+    private const string LastOwnerMessage = "Debe permanecer al menos un Dueño activo.";
     private readonly VentaStockDbContext _context;
 
     public UserRepository(VentaStockDbContext context)
@@ -32,7 +34,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<Usuario>> GetAllAsync()
     {
         return await _context.Usuarios
-            .Where(u => u.Activo) // <-- Este filtro excluye los dados de baja
+            .Where(u => u.Activo)
             .Include(u => u.IdRolNavigation)
             .AsNoTracking()
             .ToListAsync();
@@ -71,9 +73,24 @@ public class UserRepository : IUserRepository
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var activeOwnerIds = await LockActiveOwnersAsync();
             var trackedUser = await _context.Usuarios.FindAsync(user.IdUsuario);
             if (trackedUser is null)
                 throw new InvalidOperationException($"No se encontro al usuario con id {user.IdUsuario}.");
+
+            // Recargar después del bloqueo: FindAsync puede devolver datos desactualizados.
+            await _context.Entry(trackedUser).ReloadAsync();
+            if (_context.Entry(trackedUser).State == EntityState.Detached || !trackedUser.Activo)
+                throw new InvalidOperationException("El usuario ya no está activo o no existe.");
+
+            var newRole = await _context.Rols.AsNoTracking()
+                .FirstOrDefaultAsync(r => r.IdRol == user.IdRol)
+                ?? throw new InvalidOperationException("El rol seleccionado no existe.");
+
+            bool remainsActiveOwner = user.Activo &&
+                string.Equals(newRole.Nombre, OwnerRoleName, StringComparison.OrdinalIgnoreCase);
+            if (activeOwnerIds.Count == 1 && activeOwnerIds.Contains(user.IdUsuario) && !remainsActiveOwner)
+                throw new InvalidOperationException(LastOwnerMessage);
 
             trackedUser.NombreUsuario = user.NombreUsuario;
             trackedUser.Mail = user.Mail;
@@ -100,8 +117,15 @@ public class UserRepository : IUserRepository
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var activeOwnerIds = await LockActiveOwnersAsync();
             var user = await _context.Usuarios.FindAsync(userId);
             if (user is null) return;
+
+            await _context.Entry(user).ReloadAsync();
+            if (_context.Entry(user).State == EntityState.Detached || !user.Activo) return;
+
+            if (activeOwnerIds.Count == 1 && activeOwnerIds.Contains(userId))
+                throw new InvalidOperationException(LastOwnerMessage);
 
             user.Activo = false;
             _context.Entry(user).Property(u => u.Activo).IsModified = true;
@@ -114,5 +138,16 @@ public class UserRepository : IUserRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    private Task<List<int>> LockActiveOwnersAsync()
+    {
+        // Mantener los bloqueos hasta confirmar la transacción para proteger al último Dueño.
+        return _context.Database.SqlQuery<int>($"""
+            SELECT u.id_usuario AS [Value]
+            FROM dbo.usuario AS u WITH (UPDLOCK, HOLDLOCK)
+            INNER JOIN dbo.rol AS r ON r.id_rol = u.id_rol
+            WHERE u.activo = 1 AND r.nombre = {OwnerRoleName}
+            """).ToListAsync();
     }
 }
