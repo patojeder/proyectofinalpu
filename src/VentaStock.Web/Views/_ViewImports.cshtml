@@ -2,5 +2,6 @@
 @using VentaStock.Web.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-@using VentaStock.Application.Security
+@using VentaStock.Domain.Security
+@using VentaStock.Domain.Security.Permissions
 @inject VentaStock.Application.Contracts.ICurrentUser CurrentUser

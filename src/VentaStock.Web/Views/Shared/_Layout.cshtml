@@ -25,19 +25,17 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
-                        @* Módulo Usuarios: solo Owner y UserManager *@
-                        @if (User.IsInRole("Owner") || User.IsInRole("UserManager"))
+                        @if (CurrentUser.HasPermission(UserPermissions.Read) || CurrentUser.HasPermission(UserPermissions.Create))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">Usuarios</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="@(CurrentUser.HasPermission(UserPermissions.Read) ? "Index" : "Create")">Usuarios</a>
                             </li>
                         }
 
-                        @* Módulo Stock e Inventario: solo Owner y Vendedor *@
-                        @if (User.IsInRole("Owner") || User.IsInRole("Vendedor"))
+                        @if (CurrentUser.HasPermission(CategoryPermissions.Read) || CurrentUser.HasPermission(CategoryPermissions.Create))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Stock e Inventario</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="@(CurrentUser.HasPermission(CategoryPermissions.Read) ? "Index" : "Create")">Stock e Inventario</a>
                             </li>
                         }
                     </ul>

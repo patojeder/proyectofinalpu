@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VentaStock.Application.Contracts;
 using VentaStock.Application.DTOs;
-using VentaStock.Application.Security;
+using VentaStock.Domain.Security.Permissions;
 using VentaStock.Web.Security;
 
 namespace VentaStock.Web.Controllers;
 
-[Authorize(Roles = "Owner,UserManager")]
+[Authorize]
 [UserAccessDenied]
 public class UserController : Controller
 {

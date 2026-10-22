@@ -1,10 +1,11 @@
+using VentaStock.Domain.Security;
 using AutoMapper;
 using BCrypt.Net;
 using VentaStock.Application.Contracts;
 using VentaStock.Application.DTOs;
 using VentaStock.Domain.Contracts;
 using VentaStock.Domain.Entities;
-using VentaStock.Application.Security;
+using VentaStock.Domain.Security.Permissions;
 
 namespace VentaStock.Application.Services;
 
@@ -139,7 +140,7 @@ public class UserService : IUserService
     }
 
     private static bool IsOwnerRole(Rol role) =>
-        string.Equals(role.Nombre, UserPermissions.OwnerRole, StringComparison.OrdinalIgnoreCase);
+        string.Equals(role.Nombre, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
 
     private void RequireManageableUser(Usuario user)
     {

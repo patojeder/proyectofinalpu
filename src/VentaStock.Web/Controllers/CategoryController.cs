@@ -1,41 +1,43 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VentaStock.Application.Contracts;
 using VentaStock.Application.DTOs;
+using VentaStock.Domain.Security.Permissions;
 using VentaStock.Application.Services;
+using VentaStock.Web.Security;
 
 namespace VentaStock.Web.Controllers;
 
-[Authorize(Roles = "Owner,Vendedor")]
+[Authorize]
+[UserAccessDenied]
 public class CategoryController : Controller
 {
     private readonly ICategoryService _categoryService;
+    private readonly ICurrentUser _currentUser;
 
-    public CategoryController(ICategoryService categoryService)
+    public CategoryController(ICategoryService categoryService, ICurrentUser currentUser)
     {
         _categoryService = categoryService;
+        _currentUser = currentUser;
     }
 
-    // GET: /Category (Visible para Owner y Vendedor)
     [HttpGet]
+    [Authorize(Policy = CategoryPermissions.Read)]
     public async Task<IActionResult> Index()
     {
         var categories = await _categoryService.GetAllAsync();
         return View(categories);
     }
 
-    // --- ACCIONES EXCLUSIVAS DE OWNER ---
-
-    // GET: /Category/Create
     [HttpGet]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Create)]
     public IActionResult Create()
     {
         return View(new CreateCategoryDto());
     }
 
-    // POST: /Category/Create
     [HttpPost]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Create)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateCategoryDto dto)
     {
@@ -46,7 +48,7 @@ public class CategoryController : Controller
         {
             await _categoryService.CreateAsync(dto);
             TempData["SuccessMessage"] = "Categoría creada exitosamente.";
-            return RedirectToAction(nameof(Index));
+            return RedirectAfterMutation();
         }
         catch (InvalidOperationException ex)
         {
@@ -55,9 +57,8 @@ public class CategoryController : Controller
         }
     }
 
-    // GET: /Category/Edit/5
     [HttpGet]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Update)]
     public async Task<IActionResult> Edit(int id)
     {
         var dto = await _categoryService.GetForEditByIdAsync(id);
@@ -67,9 +68,8 @@ public class CategoryController : Controller
         return View(dto);
     }
 
-    // POST: /Category/Edit/5
     [HttpPost]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Update)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, EditCategoryDto dto)
     {
@@ -83,7 +83,7 @@ public class CategoryController : Controller
         {
             await _categoryService.UpdateAsync(dto);
             TempData["SuccessMessage"] = "Categoría actualizada exitosamente.";
-            return RedirectToAction(nameof(Index));
+            return RedirectAfterMutation();
         }
         catch (InvalidOperationException ex)
         {
@@ -92,9 +92,8 @@ public class CategoryController : Controller
         }
     }
 
-    // GET: /Category/Delete/5
     [HttpGet]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Deactivate)]
     public async Task<IActionResult> Delete(int id)
     {
         var dto = await _categoryService.GetForDeleteByIdAsync(id);
@@ -104,14 +103,17 @@ public class CategoryController : Controller
         return View(dto);
     }
 
-    // POST: /Category/Delete/5
     [HttpPost, ActionName("Delete")]
-    [Authorize(Roles = "Owner")]
+    [Authorize(Policy = CategoryPermissions.Deactivate)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         await _categoryService.DeleteAsync(id);
         TempData["SuccessMessage"] = "Categoría eliminada correctamente.";
-        return RedirectToAction(nameof(Index));
+        return RedirectAfterMutation();
     }
+
+    private IActionResult RedirectAfterMutation() => _currentUser.HasPermission(CategoryPermissions.Read)
+        ? RedirectToAction(nameof(Index))
+        : RedirectToAction("Index", "Home");
 }

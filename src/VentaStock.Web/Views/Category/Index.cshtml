@@ -2,7 +2,9 @@
 
 @{
     ViewData["Title"] = "Categorías";
-    var esOwner = User.IsInRole("Owner");
+    var canUpdate = CurrentUser.HasPermission(CategoryPermissions.Update);
+    var canDeactivate = CurrentUser.HasPermission(CategoryPermissions.Deactivate);
+    var showActions = canUpdate || canDeactivate;
 }
 
 <div class="container py-4">
@@ -14,7 +16,7 @@
         </div>
         <div>
             <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-2">Volver al Inicio</a>
-            @if (esOwner)
+            @if (CurrentUser.HasPermission(CategoryPermissions.Create))
             {
                 <a asp-action="Create" class="btn btn-primary">+ Nueva Categoría</a>
             }
@@ -37,7 +39,7 @@
                         <tr>
                             <th scope="col">Nombre</th>
                             <th scope="col">Descripción</th>
-                            @if (esOwner)
+                            @if (showActions)
                             {
                                 <th scope="col" class="text-end pe-4">Acciones</th>
                             }
@@ -47,7 +49,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="@(esOwner ? 4 : 3)" class="text-center py-4 text-muted">
+                                <td colspan="@(showActions ? 3 : 2)" class="text-center py-4 text-muted">
                                     No hay categorías registradas.
                                 </td>
                             </tr>
@@ -59,15 +61,21 @@
                                 <tr>
                                     <td class="fw-bold text-dark">@item.Nombre</td>
                                     <td class="text-muted">@(string.IsNullOrWhiteSpace(item.Descripcion) ? "-" : item.Descripcion)</td>
-                                    @if (esOwner)
+                                    @if (showActions)
                                     {
                                         <td class="text-end pe-4">
-                                            <a asp-action="Edit" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-secondary me-1">
-                                                Editar
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-danger">
-                                                Eliminar
-                                            </a>
+                                            @if (canUpdate)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-secondary me-1">
+                                                    Editar
+                                                </a>
+                                            }
+                                            @if (canDeactivate)
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-danger">
+                                                    Eliminar
+                                                </a>
+                                            }
                                         </td>
                                     }
                                 </tr>

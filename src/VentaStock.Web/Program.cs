@@ -1,8 +1,9 @@
+using VentaStock.Domain.Security;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using VentaStock.Application;
 using VentaStock.Infrastructure;
 using VentaStock.Application.Contracts;
-using VentaStock.Application.Security;
+using VentaStock.Domain.Security.Permissions;
 using VentaStock.Web.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,10 +29,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in UserPermissions.All)
+    foreach (var permission in UserPermissions.All.Concat(CategoryPermissions.All))
     {
         options.AddPolicy(permission, policy => policy.RequireAuthenticatedUser()
-            .RequireAssertion(context => context.User.IsInRole(UserPermissions.OwnerRole)
+            .RequireAssertion(context => context.User.IsInRole(SystemRoles.Owner)
                 || context.User.HasClaim("Permiso", permission)));
     }
 });
