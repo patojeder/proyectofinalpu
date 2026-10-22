@@ -1,8 +1,7 @@
-namespace VentaStock.Application.Security;
+namespace VentaStock.Domain.Security.Permissions;
 
 public static class UserPermissions
 {
-    public const string OwnerRole = "Owner";
     public const string Read = "Users.Read";
     public const string Create = "Users.Create";
     public const string Update = "Users.Update";

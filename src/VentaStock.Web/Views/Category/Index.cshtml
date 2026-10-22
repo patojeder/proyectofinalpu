@@ -1,0 +1,89 @@
+@model IEnumerable<VentaStock.Application.DTOs.CategoryDto>
+
+@{
+    ViewData["Title"] = "Categorías";
+    var canUpdate = CurrentUser.HasPermission(CategoryPermissions.Update);
+    var canDeactivate = CurrentUser.HasPermission(CategoryPermissions.Deactivate);
+    var showActions = canUpdate || canDeactivate;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <span class="badge bg-secondary mb-1">Módulo Stock e Inventario</span>
+            <h2 class="fw-bold mb-1">Categorías de Artículos</h2>
+            <p class="text-muted mb-0">Gestión y clasificación del catálogo</p>
+        </div>
+        <div>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-2">Volver al Inicio</a>
+            @if (CurrentUser.HasPermission(CategoryPermissions.Create))
+            {
+                <a asp-action="Create" class="btn btn-primary">+ Nueva Categoría</a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Descripción</th>
+                            @if (showActions)
+                            {
+                                <th scope="col" class="text-end pe-4">Acciones</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="@(showActions ? 3 : 2)" class="text-center py-4 text-muted">
+                                    No hay categorías registradas.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@item.Nombre</td>
+                                    <td class="text-muted">@(string.IsNullOrWhiteSpace(item.Descripcion) ? "-" : item.Descripcion)</td>
+                                    @if (showActions)
+                                    {
+                                        <td class="text-end pe-4">
+                                            @if (canUpdate)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-secondary me-1">
+                                                    Editar
+                                                </a>
+                                            }
+                                            @if (canDeactivate)
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-danger">
+                                                    Eliminar
+                                                </a>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
