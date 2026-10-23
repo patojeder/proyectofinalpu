@@ -61,7 +61,7 @@ public class UserService : IUserService
 
     public async Task<DeleteUserDto?> GetForDeleteByIdAsync(int userId)
     {
-        RequirePermission(UserPermissions.Deactivate);
+        RequirePermission(UserPermissions.Delete);
         var user = await _userRepository.GetByIdAsync(userId);
         if (user is not null) RequireManageableUser(user);
         return user is null ? null : _mapper.Map<DeleteUserDto>(user);
@@ -85,7 +85,6 @@ public class UserService : IUserService
             Mail = dto.Mail.Trim(),
             IdRol = dto.IdRol,
             PasswordHash = hashedPassword,
-            Activo = true,
             FechaCreacion = DateTime.UtcNow
         };
 
@@ -124,7 +123,6 @@ public class UserService : IUserService
             NombreUsuario = dto.NombreUsuario.Trim(),
             Mail = dto.Mail.Trim(),
             IdRol = dto.IdRol,
-            Activo = existingUser.Activo,
             PasswordHash = passwordHash
         };
 
@@ -133,7 +131,7 @@ public class UserService : IUserService
 
     public async Task DeleteAsync(int userId)
     {
-        RequirePermission(UserPermissions.Deactivate);
+        RequirePermission(UserPermissions.Delete);
         var existingUser = await _userRepository.GetByIdAsync(userId);
         if (existingUser is null)
             throw new InvalidOperationException($"El usuario con ID {userId} no existe.");

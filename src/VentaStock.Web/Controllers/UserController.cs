@@ -103,7 +103,7 @@ public class UserController : Controller
         }
     }
 
-    [Authorize(Policy = UserPermissions.Deactivate)]
+    [Authorize(Policy = UserPermissions.Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var dto = await _userService.GetForDeleteByIdAsync(id);
@@ -117,13 +117,13 @@ public class UserController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = UserPermissions.Deactivate)]
+    [Authorize(Policy = UserPermissions.Delete)]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         try
         {
             await _userService.DeleteAsync(id);
-            TempData["SuccessMessage"] = "Usuario dado de baja exitosamente.";
+            TempData["SuccessMessage"] = "Usuario eliminado exitosamente.";
             return RedirectAfterMutation();
         }
         catch (InvalidOperationException ex)

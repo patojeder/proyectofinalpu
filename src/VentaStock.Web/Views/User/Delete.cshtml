@@ -1,7 +1,7 @@
 @model VentaStock.Application.DTOs.DeleteUserDto
 
 @{
-    ViewData["Title"] = "Dar de Baja Usuario";
+    ViewData["Title"] = "Eliminar Usuario";
 }
 
 <div class="container mt-4">
@@ -9,10 +9,10 @@
         <div class="col-md-8 col-lg-6">
             <div class="card border-danger shadow-sm">
                 <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Confirmar Baja de Usuario</h4>
+                    <h4 class="mb-0">Eliminar Usuario</h4>
                 </div>
                 <div class="card-body">
-                    <p class="text-danger fw-bold">¿Está seguro de que desea dar de baja al siguiente usuario?</p>
+                    <p class="text-danger fw-bold">¿Está seguro de que desea eliminar definitivamente al siguiente usuario?</p>
                     
                     <dl class="row mb-0">
                         <dt class="col-sm-4 text-muted">Nombre de Usuario:</dt>
@@ -33,7 +33,7 @@
 
                         <div class="d-flex justify-content-between">
                             <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-danger">Confirmar Baja</button>
+                            <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
                         </div>
                     </form>
                 </div>

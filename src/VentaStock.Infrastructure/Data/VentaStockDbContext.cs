@@ -12,13 +12,13 @@ public partial class VentaStockDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Categoria> Categorias { get; set; }
+
     public virtual DbSet<Permiso> Permisos { get; set; }
 
     public virtual DbSet<Rol> Rols { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
-
-    public virtual DbSet<Categoria> Categorias { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,22 +29,19 @@ public partial class VentaStockDbContext : DbContext
             entity.ToTable("categoria");
 
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
-                .IsRequired()
                 .HasColumnName("nombre");
-            entity.Property(e => e.Descripcion)
-                .HasColumnName("descripcion");
-            entity.Property(e => e.Activo)
-                .HasDefaultValue(true)
-                .HasColumnName("activo");
         });
 
         modelBuilder.Entity<Permiso>(entity =>
         {
-            entity.HasKey(e => e.IdPermiso).HasName("PK__permiso__228F224F47C86BBC");
+            entity.HasKey(e => e.IdPermiso);
 
             entity.ToTable("permiso");
+
+            entity.HasIndex(e => e.Nombre, "UQ_permiso_nombre").IsUnique();
 
             entity.Property(e => e.IdPermiso).HasColumnName("id_permiso");
             entity.Property(e => e.Descripcion)
@@ -57,9 +54,11 @@ public partial class VentaStockDbContext : DbContext
 
         modelBuilder.Entity<Rol>(entity =>
         {
-            entity.HasKey(e => e.IdRol).HasName("PK__rol__6ABCB5E042F28196");
+            entity.HasKey(e => e.IdRol);
 
             entity.ToTable("rol");
+
+            entity.HasIndex(e => e.Nombre, "UQ_rol_nombre").IsUnique();
 
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.EsPersonalizado).HasColumnName("es_personalizado");
@@ -87,18 +86,17 @@ public partial class VentaStockDbContext : DbContext
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.IdUsuario).HasName("PK__usuario__4E3E04AD429765D0");
+            entity.HasKey(e => e.IdUsuario);
 
             entity.ToTable("usuario");
 
-            entity.HasIndex(e => e.NombreUsuario, "UQ__usuario__D4D22D7451EB13C2").IsUnique();
+            entity.HasIndex(e => e.IdRol, "IX_usuario_id_rol");
+
+            entity.HasIndex(e => e.NombreUsuario, "UQ_usuario_nombre").IsUnique();
 
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
-            entity.Property(e => e.Activo)
-                .HasDefaultValue(true)
-                .HasColumnName("activo");
             entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(sysdatetime())")
+                .HasDefaultValueSql("(sysutcdatetime())", "DF_usuario_fecha_creacion")
                 .HasColumnName("fecha_creacion");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.Mail)

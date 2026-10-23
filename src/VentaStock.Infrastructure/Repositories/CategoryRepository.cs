@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using VentaStock.Domain.Contracts;
 using VentaStock.Domain.Entities;
@@ -17,7 +18,6 @@ public class CategoryRepository : ICategoryRepository
     public async Task<IEnumerable<Categoria>> GetAllAsync()
     {
         return await _context.Categorias
-            .Where(c => c.Activo)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -25,13 +25,13 @@ public class CategoryRepository : ICategoryRepository
     public async Task<Categoria?> GetByIdAsync(int idCategoria)
     {
         return await _context.Categorias
-            .FirstOrDefaultAsync(c => c.IdCategoria == idCategoria && c.Activo);
+            .FirstOrDefaultAsync(c => c.IdCategoria == idCategoria);
     }
 
     public async Task<bool> ExistsByNameAsync(string nombre, int? excludeId = null)
     {
         return await _context.Categorias
-            .AnyAsync(c => c.Activo && c.Nombre == nombre && (!excludeId.HasValue || c.IdCategoria != excludeId.Value));
+            .AnyAsync(c => c.Nombre == nombre && (!excludeId.HasValue || c.IdCategoria != excludeId.Value));
     }
 
     public async Task CreateAsync(Categoria categoria)
@@ -61,7 +61,6 @@ public class CategoryRepository : ICategoryRepository
 
             tracked.Nombre = categoria.Nombre;
             tracked.Descripcion = categoria.Descripcion;
-            tracked.Activo = categoria.Activo;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -81,11 +80,15 @@ public class CategoryRepository : ICategoryRepository
             var tracked = await _context.Categorias.FindAsync(idCategoria);
             if (tracked is null) return;
 
-            tracked.Activo = false;
-            _context.Entry(tracked).Property(c => c.Activo).IsModified = true;
+            _context.Categorias.Remove(tracked);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("No se puede eliminar la categoría porque tiene registros relacionados.", ex);
         }
         catch
         {

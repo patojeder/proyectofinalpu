@@ -1,9 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace VentaStock.Domain.Entities;
 
-public class Categoria
+public partial class Categoria
 {
     public int IdCategoria { get; set; }
-    public string Nombre { get; set; } = string.Empty;
+
+    public string Nombre { get; set; } = null!;
+
     public string? Descripcion { get; set; }
-    public bool Activo { get; set; } = true;
 }

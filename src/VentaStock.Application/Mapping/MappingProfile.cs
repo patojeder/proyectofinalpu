@@ -22,7 +22,6 @@ public class MappingProfile : Profile
         CreateMap<Usuario, DeleteUserDto>()
             .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
 
-        //Cateogria
         CreateMap<Categoria, CategoryDto>();
         CreateMap<CreateCategoryDto, Categoria>();
         CreateMap<EditCategoryDto, Categoria>();

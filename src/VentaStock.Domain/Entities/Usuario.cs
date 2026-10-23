@@ -15,8 +15,6 @@ public partial class Usuario
 
     public string Mail { get; set; } = null!;
 
-    public bool Activo { get; set; }
-
     public DateTime FechaCreacion { get; set; }
 
     public virtual Rol IdRolNavigation { get; set; } = null!;

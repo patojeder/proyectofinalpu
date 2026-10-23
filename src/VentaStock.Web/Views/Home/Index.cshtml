@@ -11,7 +11,7 @@
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <div class="row g-4 justify-content-center">
-            @if (CurrentUser.HasPermission("VENTAS_CREAR") || CurrentUser.HasPermission("VENTAS_VER"))
+            @if (CurrentUser.HasPermission(SalesPermissions.Create) || CurrentUser.HasPermission(SalesPermissions.Read))
             {
                 <div class="col-sm-6 col-md-4">
                     <div class="card h-100 shadow-sm border text-center p-3">

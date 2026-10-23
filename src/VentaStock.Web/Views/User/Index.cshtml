@@ -63,11 +63,11 @@
                                         Editar
                                     </a>
                                     }
-                                    @if (CurrentUser.HasPermission(UserPermissions.Deactivate) &&
+                                    @if (CurrentUser.HasPermission(UserPermissions.Delete) &&
                                         (CurrentUser.IsOwner || !string.Equals(user.Rol, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
                                     {
                                     <a asp-action="Delete" asp-route-id="@user.IdUsuario" class="btn btn-sm btn-outline-danger">
-                                        Baja
+                                        Eliminar
                                     </a>
                                     }
                                 </td>

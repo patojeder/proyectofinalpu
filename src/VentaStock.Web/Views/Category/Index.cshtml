@@ -3,8 +3,8 @@
 @{
     ViewData["Title"] = "Categorías";
     var canUpdate = CurrentUser.HasPermission(CategoryPermissions.Update);
-    var canDeactivate = CurrentUser.HasPermission(CategoryPermissions.Deactivate);
-    var showActions = canUpdate || canDeactivate;
+    var canDelete = CurrentUser.HasPermission(CategoryPermissions.Delete);
+    var showActions = canUpdate || canDelete;
 }
 
 <div class="container py-4">
@@ -27,6 +27,14 @@
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -70,7 +78,7 @@
                                                     Editar
                                                 </a>
                                             }
-                                            @if (canDeactivate)
+                                            @if (canDelete)
                                             {
                                                 <a asp-action="Delete" asp-route-id="@item.IdCategoria" class="btn btn-sm btn-outline-danger">
                                                     Eliminar
