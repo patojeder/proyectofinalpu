@@ -40,6 +40,8 @@ public class ProductRepository(VentaStockDbContext context) : IProductRepository
             ?? throw new InvalidOperationException("El producto ya no existe.");
         if (stock is null)
             throw new InvalidOperationException("El producto no tiene un registro de stock válido.");
+        if (await context.StockMovements.AnyAsync(m => m.ProductId == id))
+            throw new InvalidOperationException("No se puede eliminar un producto con historial de movimientos de stock.");
         if (stock.Quantity != 0)
             throw new InvalidOperationException("No se puede eliminar un producto con existencias positivas o negativas.");
         context.Products.Remove(product);

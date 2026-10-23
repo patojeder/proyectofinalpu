@@ -48,6 +48,9 @@ BEGIN TRY
         (N'Products.ReadSalePrice', N'Consultar precio de venta de productos.'),
         (N'Products.UpdatePrices', N'Asignar o modificar precios de productos.'),
         (N'Stock.Read', N'Consultar existencias de productos.'),
+        (N'Stock.Receipt', N'Registrar ingresos de mercadería.'),
+        (N'Stock.Adjust', N'Ajustar existencias por conteo físico.'),
+        (N'Stock.ReadMovements', N'Consultar el historial de movimientos de stock.'),
         (N'Sales.Read', N'Consultar ventas.'),
         (N'Sales.Create', N'Realizar ventas.');
 
@@ -64,7 +67,7 @@ BEGIN TRY
         r.Name = N'Dueño'
         OR (r.Name = N'Gestor de Usuarios' AND p.Name LIKE N'Users.%')
         OR (r.Name = N'Gestor de Productos' AND (p.Name LIKE N'Categories.%' OR p.Name LIKE N'Services.%' OR p.Name LIKE N'Products.%' OR p.Name = N'Stock.Read'))
-        OR (r.Name = N'Gestor de Stock' AND p.Name IN (N'Products.Read', N'Products.Create', N'Stock.Read', N'Categories.Read'))
+        OR (r.Name = N'Gestor de Stock' AND (p.Name LIKE N'Stock.%' OR p.Name IN (N'Products.Read', N'Products.Create', N'Categories.Read')))
         OR (r.Name = N'Gestor de Precios' AND p.Name IN (N'Products.Read', N'Products.ReadCost', N'Products.ReadSalePrice', N'Products.UpdatePrices', N'Categories.Read'))
         OR (r.Name = N'Vendedor' AND p.Name IN (N'Sales.Read', N'Sales.Create', N'Categories.Read', N'Services.Read', N'Products.Read', N'Products.ReadSalePrice', N'Stock.Read'))
     ) AND NOT EXISTS (

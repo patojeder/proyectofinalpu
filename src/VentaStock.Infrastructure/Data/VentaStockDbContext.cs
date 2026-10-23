@@ -24,6 +24,8 @@ public partial class VentaStockDbContext : DbContext
 
     public virtual DbSet<Service> Services { get; set; }
 
+    public virtual DbSet<StockMovement> StockMovements { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -131,6 +133,32 @@ public partial class VentaStockDbContext : DbContext
                         j.ToTable("ServiceCategories");
                         j.HasIndex(new[] { "CategoryId" }, "IX_ServiceCategories_CategoryId");
                     });
+        });
+
+        modelBuilder.Entity<StockMovement>(entity =>
+        {
+            entity.HasIndex(e => new { e.ProductId, e.CreatedAtUtc, e.Id }, "IX_StockMovements_ProductId_CreatedAtUtc").IsDescending(false, true, true);
+
+            entity.HasIndex(e => e.UserId, "IX_StockMovements_UserId");
+
+            entity.HasIndex(e => e.OperationId, "UQ_StockMovements_OperationId").IsUnique();
+
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_StockMovements_CreatedAtUtc");
+            entity.Property(e => e.MovementType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Reason).HasMaxLength(500);
+            entity.Property(e => e.UserName).HasMaxLength(50);
+
+            entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StockMovements_Products");
+
+            entity.HasOne(d => d.User).WithMany(p => p.StockMovements)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_StockMovements_Users");
         });
 
         modelBuilder.Entity<User>(entity =>
