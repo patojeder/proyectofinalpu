@@ -19,7 +19,7 @@
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
     }
 
@@ -27,7 +27,7 @@
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
     }
 
@@ -49,24 +49,24 @@
                         @foreach (var user in Model)
                         {
                             <tr>
-                                <td class="fw-bold">@user.NombreUsuario</td>
-                                <td>@user.Mail</td>
+                                <td class="fw-bold">@user.UserName</td>
+                                <td>@user.Email</td>
                                 <td>
-                                    <span class="badge bg-secondary">@user.Rol</span>
+                                    <span class="badge bg-secondary">@user.Role</span>
                                 </td>
-                                <td>@user.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@user.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="text-end pe-3">
                                     @if (CurrentUser.HasPermission(UserPermissions.Update) &&
-                                        (CurrentUser.IsOwner || !string.Equals(user.Rol, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
+                                        (CurrentUser.IsOwner || !string.Equals(user.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
                                     {
-                                    <a asp-action="Edit" asp-route-id="@user.IdUsuario" class="btn btn-sm btn-outline-primary me-1">
+                                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary me-1">
                                         Editar
                                     </a>
                                     }
                                     @if (CurrentUser.HasPermission(UserPermissions.Delete) &&
-                                        (CurrentUser.IsOwner || !string.Equals(user.Rol, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
+                                        (CurrentUser.IsOwner || !string.Equals(user.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
                                     {
-                                    <a asp-action="Delete" asp-route-id="@user.IdUsuario" class="btn btn-sm btn-outline-danger">
+                                    <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger">
                                         Eliminar
                                     </a>
                                     }

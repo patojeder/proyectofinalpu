@@ -15,33 +15,43 @@ public class CategoryRepository : ICategoryRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Categoria>> GetAllAsync()
+    public async Task<IEnumerable<Category>> GetAllAsync()
     {
-        return await _context.Categorias
+        return await _context.Categories
             .AsNoTracking()
+            .OrderBy(c => c.Name)
             .ToListAsync();
     }
 
-    public async Task<Categoria?> GetByIdAsync(int idCategoria)
+    public Task<List<Category>> GetByIdsAsync(IEnumerable<int> ids) => _context.Categories
+        .Where(c => ids.Contains(c.Id))
+        .ToListAsync();
+
+    public async Task<Category?> GetByIdAsync(int idCategoria)
     {
-        return await _context.Categorias
-            .FirstOrDefaultAsync(c => c.IdCategoria == idCategoria);
+        return await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == idCategoria);
     }
 
     public async Task<bool> ExistsByNameAsync(string nombre, int? excludeId = null)
     {
-        return await _context.Categorias
-            .AnyAsync(c => c.Nombre == nombre && (!excludeId.HasValue || c.IdCategoria != excludeId.Value));
+        return await _context.Categories
+            .AnyAsync(c => c.Name == nombre && (!excludeId.HasValue || c.Id != excludeId.Value));
     }
 
-    public async Task CreateAsync(Categoria categoria)
+    public async Task CreateAsync(Category categoria)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            await _context.Categorias.AddAsync(categoria);
+            await _context.Categories.AddAsync(categoria);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("Ya existe una categoría con ese nombre.", ex);
         }
         catch
         {
@@ -50,20 +60,25 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task UpdateAsync(Categoria categoria)
+    public async Task UpdateAsync(Category categoria)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var tracked = await _context.Categorias.FindAsync(categoria.IdCategoria);
+            var tracked = await _context.Categories.FindAsync(categoria.Id);
             if (tracked is null)
-                throw new InvalidOperationException($"No se encontró la categoría con id {categoria.IdCategoria}.");
+                throw new InvalidOperationException($"No se encontró la categoría con id {categoria.Id}.");
 
-            tracked.Nombre = categoria.Nombre;
-            tracked.Descripcion = categoria.Descripcion;
+            tracked.Name = categoria.Name;
+            tracked.Description = categoria.Description;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("Ya existe otra categoría con ese nombre.", ex);
         }
         catch
         {
@@ -77,10 +92,10 @@ public class CategoryRepository : ICategoryRepository
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var tracked = await _context.Categorias.FindAsync(idCategoria);
+            var tracked = await _context.Categories.FindAsync(idCategoria);
             if (tracked is null) return;
 
-            _context.Categorias.Remove(tracked);
+            _context.Categories.Remove(tracked);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

@@ -9,7 +9,7 @@ Base del proyecto final: ASP.NET Core MVC en .NET 10 y SQL Server, con Entity Fr
 - **VentaStock.Infrastructure**: contexto generado desde SQL Server y repositorios EF Core.
 - **VentaStock.Web**: presentación MVC y registro de dependencias.
 
-La aplicación incluye autenticación por cookies, administración de usuarios, categorías y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
+La aplicación incluye autenticación por cookies, administración de usuarios, categorías, servicios y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
 
 ## Ejecución
 
@@ -23,7 +23,7 @@ dotnet run --project src/VentaStock.Web --launch-profile https
 
 Configurar la conexión con User Secrets o variables de entorno. Los scripts y su orden de ejecución están documentados en [Data/Scripts](src/VentaStock.Infrastructure/Data/Scripts/README.md). El modelo sigue el enfoque Database First: aplicar primero los cambios SQL y después regenerar entidades y DbContext.
 
-Usuarios y categorías usan borrado físico y no tienen columna `activo`. Para una base anterior, aplicar los scripts de actualización antes de ejecutar esta versión de la aplicación.
+Las tablas y columnas usan nombres en inglés. Usuarios, categorías y servicios usan borrado físico; categorías y servicios tienen nombres únicos. Para una base anterior, aplicar los scripts de actualización antes de ejecutar esta versión de la aplicación.
 
 ## Configuración y secretos
 

@@ -39,7 +39,7 @@ public class AuthController : Controller
             return View(request);
         }
 
-        var usuarioSesion = await _authService.ValidarCredencialesAsync(request);
+        var usuarioSesion = await _authService.ValidateCredentialsAsync(request);
 
         if (usuarioSesion == null)
         {
@@ -49,15 +49,15 @@ public class AuthController : Controller
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, usuarioSesion.IdUsuario.ToString()),
-            new Claim(ClaimTypes.Name, usuarioSesion.NombreUsuario),
-            new Claim(ClaimTypes.Email, usuarioSesion.Mail),
-            new Claim(ClaimTypes.Role, usuarioSesion.Rol)
+            new Claim(ClaimTypes.NameIdentifier, usuarioSesion.Id.ToString()),
+            new Claim(ClaimTypes.Name, usuarioSesion.UserName),
+            new Claim(ClaimTypes.Email, usuarioSesion.Email),
+            new Claim(ClaimTypes.Role, usuarioSesion.Role)
         };
 
-        foreach (var permiso in usuarioSesion.Permisos)
+        foreach (var permiso in usuarioSesion.Permissions)
         {
-            claims.Add(new Claim("Permiso", permiso));
+            claims.Add(new Claim("Permission", permiso));
         }
 
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

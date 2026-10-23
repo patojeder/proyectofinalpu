@@ -1,6 +1,6 @@
 using VentaStock.Application.DTOs;
 
-namespace VentaStock.Application.Services;
+namespace VentaStock.Application.Contracts;
 
 public interface ICategoryService
 {

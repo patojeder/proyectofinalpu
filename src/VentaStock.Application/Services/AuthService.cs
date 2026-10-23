@@ -17,9 +17,9 @@ public class AuthService : IAuthService
         _mapper = mapper;
     }
 
-    public async Task<UsuarioSesionDto?> ValidarCredencialesAsync(LoginRequestDto request)
+    public async Task<UserSessionDto?> ValidateCredentialsAsync(LoginRequestDto request)
     {
-        var usuario = await _userRepository.GetByUsernameAsync(request.NombreUsuario);
+        var usuario = await _userRepository.GetByUserNameAsync(request.UserName);
 
         if (usuario == null)
         {
@@ -32,6 +32,6 @@ public class AuthService : IAuthService
             return null;
         }
 
-        return _mapper.Map<UsuarioSesionDto>(usuario);
+        return _mapper.Map<UserSessionDto>(usuario);
     }
 }

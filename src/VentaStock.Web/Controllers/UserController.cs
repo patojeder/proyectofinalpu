@@ -31,7 +31,7 @@ public class UserController : Controller
     [Authorize(Policy = UserPermissions.Create)]
     public async Task<IActionResult> Create()
     {
-        await CargarRolesAsync();
+        await LoadRolesAsync();
         return View(new CreateUserDto());
     }
 
@@ -42,7 +42,7 @@ public class UserController : Controller
     {
         if (!ModelState.IsValid)
         {
-            await CargarRolesAsync(dto.IdRol);
+            await LoadRolesAsync(dto.RoleId);
             return View(dto);
         }
 
@@ -55,7 +55,7 @@ public class UserController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await CargarRolesAsync(dto.IdRol);
+            await LoadRolesAsync(dto.RoleId);
             return View(dto);
         }
     }
@@ -69,7 +69,7 @@ public class UserController : Controller
             return NotFound();
         }
 
-        await CargarRolesAsync(dto.IdRol);
+        await LoadRolesAsync(dto.RoleId);
         return View(dto);
     }
 
@@ -78,14 +78,14 @@ public class UserController : Controller
     [Authorize(Policy = UserPermissions.Update)]
     public async Task<IActionResult> Edit(int id, EditUserDto dto)
     {
-        if (id != dto.IdUsuario)
+        if (id != dto.Id)
         {
             return BadRequest();
         }
 
         if (!ModelState.IsValid)
         {
-            await CargarRolesAsync(dto.IdRol);
+            await LoadRolesAsync(dto.RoleId);
             return View(dto);
         }
 
@@ -98,7 +98,7 @@ public class UserController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await CargarRolesAsync(dto.IdRol);
+            await LoadRolesAsync(dto.RoleId);
             return View(dto);
         }
     }
@@ -137,9 +137,9 @@ public class UserController : Controller
         ? RedirectToAction(nameof(Index))
         : RedirectToAction("Index", "Home");
 
-    private async Task CargarRolesAsync(int? selectedRoleId = null)
+    private async Task LoadRolesAsync(int? selectedRoleId = null)
     {
         var roles = await _userService.GetRolesForSelectAsync();
-        ViewBag.Roles = new SelectList(roles, nameof(RoleSelectDto.IdRol), nameof(RoleSelectDto.Nombre), selectedRoleId);
+        ViewBag.Roles = new SelectList(roles, nameof(RoleSelectDto.RoleId), nameof(RoleSelectDto.Name), selectedRoleId);
     }
 }
