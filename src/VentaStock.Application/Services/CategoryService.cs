@@ -46,11 +46,10 @@ public class CategoryService : ICategoryService
         RequirePermission(CategoryPermissions.Create);
         var exists = await _categoryRepository.ExistsByNameAsync(dto.Nombre.Trim());
         if (exists)
-            throw new InvalidOperationException($"Ya existe una categoría activa con el nombre '{dto.Nombre}'.");
+            throw new InvalidOperationException($"Ya existe una categoría con el nombre '{dto.Nombre}'.");
 
         var category = _mapper.Map<Categoria>(dto);
         category.Nombre = dto.Nombre.Trim();
-        category.Activo = true;
 
         await _categoryRepository.CreateAsync(category);
     }
@@ -64,7 +63,7 @@ public class CategoryService : ICategoryService
 
         var exists = await _categoryRepository.ExistsByNameAsync(dto.Nombre.Trim(), dto.IdCategoria);
         if (exists)
-            throw new InvalidOperationException($"Ya existe otra categoría activa con el nombre '{dto.Nombre}'.");
+            throw new InvalidOperationException($"Ya existe otra categoría con el nombre '{dto.Nombre}'.");
 
         category.Nombre = dto.Nombre.Trim();
         category.Descripcion = dto.Descripcion;
@@ -74,13 +73,13 @@ public class CategoryService : ICategoryService
 
     public async Task DeleteAsync(int idCategoria)
     {
-        RequirePermission(CategoryPermissions.Deactivate);
+        RequirePermission(CategoryPermissions.Delete);
         await _categoryRepository.DeleteAsync(idCategoria);
     }
 
     public async Task<DeleteCategoryDto?> GetForDeleteByIdAsync(int idCategoria)
     {
-        RequirePermission(CategoryPermissions.Deactivate);
+        RequirePermission(CategoryPermissions.Delete);
         var category = await _categoryRepository.GetByIdAsync(idCategoria);
         return category is null ? null : _mapper.Map<DeleteCategoryDto>(category);
     }

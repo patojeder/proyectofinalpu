@@ -93,7 +93,7 @@ public class CategoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = CategoryPermissions.Deactivate)]
+    [Authorize(Policy = CategoryPermissions.Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var dto = await _categoryService.GetForDeleteByIdAsync(id);
@@ -104,12 +104,19 @@ public class CategoryController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize(Policy = CategoryPermissions.Deactivate)]
+    [Authorize(Policy = CategoryPermissions.Delete)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        await _categoryService.DeleteAsync(id);
-        TempData["SuccessMessage"] = "Categoría eliminada correctamente.";
+        try
+        {
+            await _categoryService.DeleteAsync(id);
+            TempData["SuccessMessage"] = "Categoría eliminada correctamente.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
         return RedirectAfterMutation();
     }
 

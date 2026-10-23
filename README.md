@@ -9,7 +9,7 @@ Base del proyecto final: ASP.NET Core MVC en .NET 10 y SQL Server, con Entity Fr
 - **VentaStock.Infrastructure**: contexto generado desde SQL Server y repositorios EF Core.
 - **VentaStock.Web**: presentación MVC y registro de dependencias.
 
-Las bibliotecas tienen únicamente sus puntos de registro de DI, sin lógica de negocio, y Web conserva la plantilla MVC estándar. No hay conexión a base de datos ni funcionalidades de negocio implementadas.
+La aplicación incluye autenticación por cookies, administración de usuarios, categorías y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
 
 ## Ejecución
 
@@ -21,7 +21,9 @@ dotnet build VentaStock.sln
 dotnet run --project src/VentaStock.Web --launch-profile https
 ```
 
-El esquema SQL se definirá antes de generar entidades y DbContext. El proveedor SQL Server y EF Core Design están referenciados en sus proyectos. Registrar servicios y repositorios en DI cuando se implementen; configurar la conexión con user-secrets o variables de entorno.
+Configurar la conexión con User Secrets o variables de entorno. Los scripts y su orden de ejecución están documentados en [Data/Scripts](src/VentaStock.Infrastructure/Data/Scripts/README.md). El modelo sigue el enfoque Database First: aplicar primero los cambios SQL y después regenerar entidades y DbContext.
+
+Usuarios y categorías usan borrado físico y no tienen columna `activo`. Para una base anterior, aplicar los scripts de actualización antes de ejecutar esta versión de la aplicación.
 
 ## Configuración y secretos
 
@@ -36,10 +38,10 @@ Ejemplo ilustrativo (reemplazar el marcador; no contiene una conexión real):
 dotnet user-secrets set "ConnectionStrings:VentaStock" "CADENA_LOCAL" --project src/VentaStock.Web
 ```
 
-User Secrets se carga automáticamente en Development y no cifra los valores. No poner secretos en appsettings, launchSettings ni en el repositorio. La base todavía no consulta SQL Server ni utiliza JWT; estas claves son convenciones para sus futuras implementaciones.
+User Secrets se carga automáticamente en Development y no cifra los valores. No poner secretos en appsettings, launchSettings ni en el repositorio. La aplicación consulta SQL Server y utiliza autenticación por cookies; las variables JWT están reservadas para una posible API futura.
 
 ## Inyección de dependencias
 
 `Program.cs` llama a `AddApplication()` y `AddInfrastructure(builder.Configuration)`. Cada capa centraliza sus registros en `DependencyInjection.cs`, siguiendo el patrón de TSTCo.
 
-Agregar servicios y repositorios con `AddScoped<Interfaz, Implementacion>()` cuando existan. El contexto se registrará con `AddDbContext` después de generar el esquema Database First. `ILogger<T>` lo proporciona el host ASP.NET Core; no necesita un registro manual.
+Los servicios y repositorios se registran con `AddScoped<Interfaz, Implementacion>()` y el contexto con `AddDbContext`. `ILogger<T>` lo proporciona el host ASP.NET Core; no necesita un registro manual.

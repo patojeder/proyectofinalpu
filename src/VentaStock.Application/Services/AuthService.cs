@@ -21,7 +21,7 @@ public class AuthService : IAuthService
     {
         var usuario = await _userRepository.GetByUsernameAsync(request.NombreUsuario);
 
-        if (usuario == null || !usuario.Activo)
+        if (usuario == null)
         {
             return null;
         }
