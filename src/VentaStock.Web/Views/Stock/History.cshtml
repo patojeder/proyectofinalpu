@@ -1,0 +1,46 @@
+@model VentaStock.Application.DTOs.StockHistoryDto
+@{ ViewData["Title"] = "Historial de stock"; }
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
+        <h2 class="fw-bold mb-0">Historial de stock</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver a stock</a>
+    </div>
+    <partial name="_Product" model="Model.Product" />
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr>
+                    <th>Fecha (UTC)</th><th>Tipo</th><th>Variación</th><th>Antes</th><th>Después</th><th>Usuario</th><th>Motivo / observación</th>
+                </tr></thead>
+                <tbody>
+                    @if (Model.Movements.Count == 0)
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No hay movimientos en esta página.</td></tr>
+                    }
+                    @foreach (var movement in Model.Movements)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@movement.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td>@movement.Type</td>
+                            <td class="@(movement.QuantityChange < 0 ? "text-danger" : "text-success")">@movement.QuantityChange.ToString("+0;-0;0")</td>
+                            <td>@movement.QuantityBefore</td><td>@movement.QuantityAfter</td>
+                            <td>@movement.UserName</td><td>@(movement.Reason ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <nav aria-label="Páginas del historial" class="d-flex align-items-center gap-3 mt-3">
+        @if (Model.Page > 1)
+        {
+            <a asp-action="History" asp-route-id="@Model.Product.ProductId" asp-route-page="@(Model.Page - 1)" class="btn btn-outline-secondary">Anterior</a>
+        }
+        <span>Página @Model.Page</span>
+        @if (Model.HasNextPage)
+        {
+            <a asp-action="History" asp-route-id="@Model.Product.ProductId" asp-route-page="@(Model.Page + 1)" class="btn btn-outline-secondary">Siguiente</a>
+        }
+    </nav>
+</div>

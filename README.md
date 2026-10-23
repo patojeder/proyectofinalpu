@@ -9,7 +9,7 @@ Base del proyecto final: ASP.NET Core MVC en .NET 10 y SQL Server, con Entity Fr
 - **VentaStock.Infrastructure**: contexto generado desde SQL Server y repositorios EF Core.
 - **VentaStock.Web**: presentación MVC y registro de dependencias.
 
-La aplicación incluye autenticación por cookies, administración de usuarios, categorías, servicios, productos y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
+La aplicación incluye autenticación por cookies, administración de usuarios, categorías, servicios, productos, stock y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
 
 ## Ejecución
 
@@ -34,9 +34,37 @@ El módulo incluye listado, alta, modificación de datos generales, edición sep
 - Stock mínimo entero no negativo, con valor 0 si se omite. Las existencias iniciales son 0 y no se editan desde este ABM.
 - Costo y precio de venta pueden quedar ambos sin asignar. Si se cargan, el costo debe ser no negativo y la venta mayor que el costo, con hasta dos decimales.
 - El Gestor de Stock puede crear sin acceder a precios. El Gestor de Productos y el Gestor de Precios pueden asignarlos. El Vendedor solo consulta el precio de venta y las existencias.
-- Se impide eliminar un producto con existencias positivas o negativas. Los futuros movimientos y ventas deberán conservar su historial mediante relaciones que impidan su eliminación.
+- Se impide eliminar un producto con existencias positivas o negativas. Los productos con movimientos de stock tampoco se pueden eliminar, aunque tengan cantidad 0; las futuras ventas deberán preservar también su historial.
 
-Los movimientos de stock se implementarán en otra tarea; la estructura admite cantidades negativas y unidades enteras. Después de actualizar los permisos, cerrar sesión y volver a ingresar para renovar los claims.
+Las existencias se modifican desde el módulo Stock, mediante ingresos o ajustes; se admiten cantidades negativas y unidades enteras. Después de actualizar los permisos, cerrar sesión y volver a ingresar para renovar los claims.
+
+## Stock
+
+El landing incluye el módulo Stock. Su grilla permite buscar por nombre/código y filtrar existencias en el mínimo o por debajo, con una alerta diferenciada para valores negativos. Los permisos `Stock.Read`, `Stock.Receipt`, `Stock.Adjust` y `Stock.ReadMovements` son independientes. Quien opera o consulta historial recibe la identificación y las existencias necesarias dentro de ese módulo, sin requerir permisos del catálogo ni recibir acceso a precios.
+
+| Rol | Consulta | Ingresos | Ajustes | Historial |
+|---|---|---|---|---|
+| Dueño | Sí | Sí | Sí | Sí |
+| Gestor de Stock | Sí | Sí | Sí | Sí |
+| Gestor de Productos | Sí | No | No | No |
+| Vendedor | Sí | No | No | No |
+
+- **Ingreso:** cantidad entera positiva y observación opcional; suma sobre el saldo actual, sin restablecer negativos a 0.
+- **Ajuste:** cantidad real contada, entera no negativa, y motivo obligatorio. Registra la diferencia; si coincide con el saldo, avisa sin crear un movimiento vacío. Si el saldo cambió desde que se abrió el formulario, exige revisar el valor actualizado y confirmar nuevamente.
+- **Historial:** muestra tipo, usuario, fecha UTC, motivo, variación y cantidades anterior/posterior, en páginas de 50 movimientos. No ofrece edición ni eliminación. Las correcciones se registran con nuevos movimientos.
+- **Guardado:** la modificación del saldo y el movimiento se confirman en una única transacción con bloqueo de la fila de stock. Cada formulario tiene un identificador único para evitar aplicar dos veces el mismo envío.
+- **Conservación:** los movimientos impiden eliminar el producto. Si se elimina el usuario, se conserva su nombre en el movimiento y se retira únicamente el vínculo con la cuenta.
+
+Compras, proveedores y descuentos de stock por ventas quedan para tareas posteriores. Las ventas deberán generar su movimiento y actualizar stock dentro de la misma transacción que la venta.
+
+### Verificación manual pendiente
+
+1. Cerrar sesión y volver a ingresar para renovar los permisos. Revisar que Dueño/Gestor de Stock tengan acciones y que Vendedor/Gestor de Productos solo consulten, también al intentar acceder directamente a las URLs de escritura o historial.
+2. Ingresar 10 unidades en un producto sin precios; comprobar el saldo y un solo movimiento con actor, fecha y cantidades correctos. Reenviar exactamente el mismo formulario y verificar que no se duplique.
+3. Ajustar de 10 a 7 con motivo; comprobar variación −3. Rechazar cantidad contada negativa, ingreso 0, fracciones y ajuste sin motivo. Un ajuste a la cantidad actual no genera movimiento.
+4. Abrir dos formularios: registrar un ingreso en uno e intentar confirmar un conteo abierto previamente en el otro. Debe avisar que cambió el saldo antes de permitir reconfirmar.
+5. Registrar ingresos simultáneos de distintas cantidades; comprobar que ambos se sumen y que cada movimiento encadene su saldo con el anterior. En un producto de prueba con saldo negativo previo, verificar que ingresar 10 sobre −3 deje 7.
+6. Revisar alertas al mínimo y por debajo; intentar eliminar un producto con historial después de ajustar sus existencias a 0. Debe rechazarse.
 
 ## Configuración y secretos
 

@@ -1,0 +1,9 @@
+@model VentaStock.Application.DTOs.StockItemDto
+
+<dl class="bg-light p-3 rounded mb-4">
+    <dt>Producto</dt><dd>@Model.Name</dd>
+    <dt>Código de barras</dt><dd>@Model.Barcode</dd>
+    <dt>Existencias actuales</dt><dd class="@(Model.Quantity < 0 ? "text-danger fw-bold" : "")">@Model.Quantity unidades</dd>
+    <dt>Stock mínimo</dt><dd>@Model.MinimumQuantity unidades</dd>
+    <dt>Ubicación</dt><dd>Sector: @(Model.Sector ?? "—") · Estante: @(Model.Shelf ?? "—")</dd>
+</dl>

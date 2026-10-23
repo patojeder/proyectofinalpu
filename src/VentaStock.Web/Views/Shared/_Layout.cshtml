@@ -39,6 +39,13 @@
                             </li>
                         }
 
+                        @if (StockPermissions.All.Any(CurrentUser.HasPermission))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Stock" asp-action="Index">Stock</a>
+                            </li>
+                        }
+
                         @if (CurrentUser.HasPermission(ProductPermissions.Read) || CurrentUser.HasPermission(ProductPermissions.Create))
                         {
                             <li class="nav-item">

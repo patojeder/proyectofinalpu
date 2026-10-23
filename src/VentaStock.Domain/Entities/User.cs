@@ -18,4 +18,6 @@ public partial class User
     public DateTime CreatedAtUtc { get; set; }
 
     public virtual Role Role { get; set; } = null!;
+
+    public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 }
