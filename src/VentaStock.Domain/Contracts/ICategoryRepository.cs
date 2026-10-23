@@ -4,10 +4,11 @@ namespace VentaStock.Domain.Contracts;
 
 public interface ICategoryRepository
 {
-    Task<IEnumerable<Categoria>> GetAllAsync();
-    Task<Categoria?> GetByIdAsync(int idCategoria);
+    Task<IEnumerable<Category>> GetAllAsync();
+    Task<List<Category>> GetByIdsAsync(IEnumerable<int> ids);
+    Task<Category?> GetByIdAsync(int idCategoria);
     Task<bool> ExistsByNameAsync(string nombre, int? excludeId = null);
-    Task CreateAsync(Categoria categoria);
-    Task UpdateAsync(Categoria categoria);
+    Task CreateAsync(Category categoria);
+    Task UpdateAsync(Category categoria);
     Task DeleteAsync(int idCategoria);
 }

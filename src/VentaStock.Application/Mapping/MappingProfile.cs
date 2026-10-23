@@ -8,24 +8,31 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Usuario, UsuarioSesionDto>()
-            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre))
-            .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src => src.IdRolNavigation.IdPermisos.Select(p => p.Nombre).ToList()));
+        CreateMap<User, UserSessionDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name))
+            .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Role.Permissions.Select(p => p.Name).ToList()));
 
-        CreateMap<Usuario, UserDto>()
-            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
 
-        CreateMap<Usuario, EditUserDto>()
+        CreateMap<User, EditUserDto>()
             .ForMember(dest => dest.NewPassword, opt => opt.Ignore())
             .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore());
 
-        CreateMap<Usuario, DeleteUserDto>()
-            .ForMember(dest => dest.Rol, opt => opt.MapFrom(src => src.IdRolNavigation.Nombre));
+        CreateMap<User, DeleteUserDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
 
-        CreateMap<Categoria, CategoryDto>();
-        CreateMap<CreateCategoryDto, Categoria>();
-        CreateMap<EditCategoryDto, Categoria>();
-        CreateMap<Categoria, EditCategoryDto>();
-        CreateMap<Categoria, DeleteCategoryDto>();
+        CreateMap<Category, CategoryDto>();
+        CreateMap<CreateCategoryDto, Category>();
+        CreateMap<EditCategoryDto, Category>();
+        CreateMap<Category, EditCategoryDto>();
+        CreateMap<Category, DeleteCategoryDto>();
+
+        CreateMap<Service, ServiceDto>()
+            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Categories.OrderBy(c => c.Name).Select(c => c.Name).ToList()));
+        CreateMap<Service, DeleteServiceDto>()
+            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Categories.OrderBy(c => c.Name).Select(c => c.Name).ToList()));
+        CreateMap<Service, EditServiceDto>()
+            .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src => src.Categories.Select(c => c.Id).ToList()));
     }
 }

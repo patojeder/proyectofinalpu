@@ -14,17 +14,17 @@ public class RoleRepository : IRoleRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Rol>> GetAllAsync()
+    public async Task<IEnumerable<Role>> GetAllAsync()
     {
-        return await _context.Rols
+        return await _context.Roles
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task<Rol?> GetByIdAsync(int roleId)
+    public async Task<Role?> GetByIdAsync(int roleId)
     {
-        return await _context.Rols
+        return await _context.Roles
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.IdRol == roleId);
+            .FirstOrDefaultAsync(r => r.Id == roleId);
     }
 }

@@ -1,0 +1,22 @@
+@model VentaStock.Application.DTOs.CreateServiceDto
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label fw-semibold"></label>
+    <input asp-for="Name" class="form-control" autofocus />
+    <span asp-validation-for="Name" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label fw-semibold"></label>
+    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Description" class="text-danger small"></span>
+</div>
+
+<div class="mb-4">
+    <label asp-for="CategoryIds" class="form-label fw-semibold">Categorías (opcional)</label>
+    <select asp-for="CategoryIds" asp-items="ViewBag.Categories" class="form-select" multiple size="5" aria-describedby="categories-help"></select>
+    <div id="categories-help" class="form-text">Podés seleccionar varias categorías con Ctrl o dejar el servicio sin categoría.</div>
+    <span asp-validation-for="CategoryIds" class="text-danger small"></span>
+</div>

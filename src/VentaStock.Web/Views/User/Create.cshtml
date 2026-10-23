@@ -18,23 +18,23 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <div class="mb-3">
-                            <label asp-for="NombreUsuario" class="form-label"></label>
-                            <input asp-for="NombreUsuario" class="form-control" placeholder="Ej: jsalim" autofocus />
-                            <span asp-validation-for="NombreUsuario" class="text-danger small"></span>
+                            <label asp-for="UserName" class="form-label"></label>
+                            <input asp-for="UserName" class="form-control" placeholder="Ej: jsalim" autofocus />
+                            <span asp-validation-for="UserName" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Mail" class="form-label"></label>
-                            <input asp-for="Mail" class="form-control" type="email" placeholder="usuario@dominio.com" />
-                            <span asp-validation-for="Mail" class="text-danger small"></span>
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="usuario@dominio.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="IdRol" class="form-label"></label>
-                            <select asp-for="IdRol" asp-items="ViewBag.Roles" class="form-select">
+                            <label asp-for="RoleId" class="form-label"></label>
+                            <select asp-for="RoleId" asp-items="ViewBag.Roles" class="form-select">
                                 <option value="">-- Seleccionar Rol --</option>
                             </select>
-                            <span asp-validation-for="IdRol" class="text-danger small"></span>
+                            <span asp-validation-for="RoleId" class="text-danger small"></span>
                         </div>
 
                         <div class="row">

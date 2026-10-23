@@ -52,7 +52,7 @@ public class CategoryController : Controller
         }
         catch (InvalidOperationException ex)
         {
-            ModelState.AddModelError("Nombre", ex.Message);
+            ModelState.AddModelError("Name", ex.Message);
             return View(dto);
         }
     }
@@ -73,7 +73,7 @@ public class CategoryController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, EditCategoryDto dto)
     {
-        if (id != dto.IdCategoria)
+        if (id != dto.Id)
             return BadRequest();
 
         if (!ModelState.IsValid)
@@ -87,7 +87,7 @@ public class CategoryController : Controller
         }
         catch (InvalidOperationException ex)
         {
-            ModelState.AddModelError("Nombre", ex.Message);
+            ModelState.AddModelError("Name", ex.Message);
             return View(dto);
         }
     }

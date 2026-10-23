@@ -17,47 +17,47 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<Usuario?> GetByUsernameAsync(string username)
+    public async Task<User?> GetByUserNameAsync(string username)
     {
-        return await _context.Usuarios
-            .Include(u => u.IdRolNavigation)
-                .ThenInclude(r => r.IdPermisos)
-            .FirstOrDefaultAsync(u => u.NombreUsuario == username);
+        return await _context.Users
+            .Include(u => u.Role)
+                .ThenInclude(r => r.Permissions)
+            .FirstOrDefaultAsync(u => u.UserName == username);
     }
 
-    public async Task<Usuario?> GetByIdAsync(int userId)
+    public async Task<User?> GetByIdAsync(int userId)
     {
-        return await _context.Usuarios
-            .Include(u => u.IdRolNavigation)
-            .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+        return await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-    public async Task<IEnumerable<Usuario>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Usuarios
-            .Include(u => u.IdRolNavigation)
+        return await _context.Users
+            .Include(u => u.Role)
             .AsNoTracking()
             .ToListAsync();
     }
 
     public async Task<bool> ExistsUsernameAsync(string username, int? excludeId = null)
     {
-        return await _context.Usuarios
-            .AnyAsync(u => u.NombreUsuario == username && (!excludeId.HasValue || u.IdUsuario != excludeId.Value));
+        return await _context.Users
+            .AnyAsync(u => u.UserName == username && (!excludeId.HasValue || u.Id != excludeId.Value));
     }
 
-    public async Task<bool> ExistsMailAsync(string mail, int? excludeId = null)
+    public async Task<bool> ExistsEmailAsync(string mail, int? excludeId = null)
     {
-        return await _context.Usuarios
-            .AnyAsync(u => u.Mail == mail && (!excludeId.HasValue || u.IdUsuario != excludeId.Value));
+        return await _context.Users
+            .AnyAsync(u => u.Email == mail && (!excludeId.HasValue || u.Id != excludeId.Value));
     }
 
-    public async Task CreateAsync(Usuario user)
+    public async Task CreateAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            await _context.Usuarios.AddAsync(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
@@ -68,32 +68,32 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task UpdateAsync(Usuario user)
+    public async Task UpdateAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var ownerIds = await LockOwnersAsync();
-            var trackedUser = await _context.Usuarios.FindAsync(user.IdUsuario);
+            var trackedUser = await _context.Users.FindAsync(user.Id);
             if (trackedUser is null)
-                throw new InvalidOperationException($"No se encontro al usuario con id {user.IdUsuario}.");
+                throw new InvalidOperationException($"No se encontro al usuario con id {user.Id}.");
 
             // Recargar después del bloqueo: FindAsync puede devolver datos desactualizados.
             await _context.Entry(trackedUser).ReloadAsync();
             if (_context.Entry(trackedUser).State == EntityState.Detached)
                 throw new InvalidOperationException("El usuario ya no existe.");
 
-            var newRole = await _context.Rols.AsNoTracking()
-                .FirstOrDefaultAsync(r => r.IdRol == user.IdRol)
+            var newRole = await _context.Roles.AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == user.RoleId)
                 ?? throw new InvalidOperationException("El rol seleccionado no existe.");
 
-            bool remainsOwner = string.Equals(newRole.Nombre, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
-            if (ownerIds.Count == 1 && ownerIds.Contains(user.IdUsuario) && !remainsOwner)
+            bool remainsOwner = string.Equals(newRole.Name, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
+            if (ownerIds.Count == 1 && ownerIds.Contains(user.Id) && !remainsOwner)
                 throw new InvalidOperationException(LastOwnerMessage);
 
-            trackedUser.NombreUsuario = user.NombreUsuario;
-            trackedUser.Mail = user.Mail;
-            trackedUser.IdRol = user.IdRol;
+            trackedUser.UserName = user.UserName;
+            trackedUser.Email = user.Email;
+            trackedUser.RoleId = user.RoleId;
 
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
@@ -116,7 +116,7 @@ public class UserRepository : IUserRepository
         try
         {
             var ownerIds = await LockOwnersAsync();
-            var user = await _context.Usuarios.FindAsync(userId);
+            var user = await _context.Users.FindAsync(userId);
             if (user is null) return;
 
             await _context.Entry(user).ReloadAsync();
@@ -125,7 +125,7 @@ public class UserRepository : IUserRepository
             if (ownerIds.Count == 1 && ownerIds.Contains(userId))
                 throw new InvalidOperationException(LastOwnerMessage);
 
-            _context.Usuarios.Remove(user);
+            _context.Users.Remove(user);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -146,10 +146,10 @@ public class UserRepository : IUserRepository
     {
         // Mantener los bloqueos hasta confirmar la transacción para proteger al último Dueño.
         return _context.Database.SqlQuery<int>($"""
-            SELECT u.id_usuario AS [Value]
-            FROM dbo.usuario AS u WITH (UPDLOCK, HOLDLOCK)
-            INNER JOIN dbo.rol AS r ON r.id_rol = u.id_rol
-            WHERE r.nombre = {SystemRoles.Owner}
+            SELECT u.Id AS [Value]
+            FROM dbo.Users AS u WITH (UPDLOCK, HOLDLOCK)
+            INNER JOIN dbo.Roles AS r ON r.Id = u.RoleId
+            WHERE r.Name = {SystemRoles.Owner}
             """).ToListAsync();
     }
 }

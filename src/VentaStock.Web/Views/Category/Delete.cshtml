@@ -15,17 +15,17 @@
                     <div class="bg-light p-3 rounded mb-4">
                         <div class="mb-2">
                             <span class="text-muted small">Nombre:</span>
-                            <div class="fw-bold text-dark">@Model.Nombre</div>
+                            <div class="fw-bold text-dark">@Model.Name</div>
                         </div>
                         <div>
                             <span class="text-muted small">Descripción:</span>
-                            <div class="text-secondary">@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "-" : Model.Descripcion)</div>
+                            <div class="text-secondary">@(string.IsNullOrWhiteSpace(Model.Description) ? "-" : Model.Description)</div>
                         </div>
                     </div>
 
-                    <form asp-action="Delete" asp-route-id="@Model.IdCategoria" method="post">
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="IdCategoria" />
+                        <input type="hidden" asp-for="Id" />
 
                         <div class="d-flex justify-content-end gap-2">
                             <a asp-controller="@(CurrentUser.HasPermission(CategoryPermissions.Read) ? "Category" : "Home")" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>

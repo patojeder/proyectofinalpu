@@ -32,8 +32,8 @@ public class UserService : IUserService
         roles = roles.Where(r => _currentUser.IsOwner || !IsOwnerRole(r));
         return roles.Select(r => new RoleSelectDto
         {
-            IdRol = r.IdRol,
-            Nombre = r.Nombre
+            RoleId = r.Id,
+            Name = r.Name
         });
     }
 
@@ -70,22 +70,22 @@ public class UserService : IUserService
     public async Task CreateAsync(CreateUserDto dto)
     {
         RequirePermission(UserPermissions.Create);
-        await RequireAssignableRoleAsync(dto.IdRol);
-        if (await _userRepository.ExistsUsernameAsync(dto.NombreUsuario.Trim()))
+        await RequireAssignableRoleAsync(dto.RoleId);
+        if (await _userRepository.ExistsUsernameAsync(dto.UserName.Trim()))
             throw new InvalidOperationException("El nombre de usuario ingresado ya se encuentra registrado.");
 
-        if (await _userRepository.ExistsMailAsync(dto.Mail.Trim()))
+        if (await _userRepository.ExistsEmailAsync(dto.Email.Trim()))
             throw new InvalidOperationException("El correo electrónico ingresado ya se encuentra registrado.");
 
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-        var user = new Usuario
+        var user = new User
         {
-            NombreUsuario = dto.NombreUsuario.Trim(),
-            Mail = dto.Mail.Trim(),
-            IdRol = dto.IdRol,
+            UserName = dto.UserName.Trim(),
+            Email = dto.Email.Trim(),
+            RoleId = dto.RoleId,
             PasswordHash = hashedPassword,
-            FechaCreacion = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow
         };
 
         await _userRepository.CreateAsync(user);
@@ -94,19 +94,19 @@ public class UserService : IUserService
     public async Task UpdateAsync(EditUserDto dto)
     {
         RequirePermission(UserPermissions.Update);
-        var existingUser = await _userRepository.GetByIdAsync(dto.IdUsuario);
+        var existingUser = await _userRepository.GetByIdAsync(dto.Id);
         if (existingUser is null)
-            throw new InvalidOperationException($"El usuario con ID {dto.IdUsuario} no existe.");
+            throw new InvalidOperationException($"El usuario con ID {dto.Id} no existe.");
 
         RequireManageableUser(existingUser);
-        await RequireAssignableRoleAsync(dto.IdRol);
+        await RequireAssignableRoleAsync(dto.RoleId);
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
             RequirePermission(UserPermissions.ResetPassword);
 
-        if (await _userRepository.ExistsUsernameAsync(dto.NombreUsuario.Trim(), excludeId: dto.IdUsuario))
+        if (await _userRepository.ExistsUsernameAsync(dto.UserName.Trim(), excludeId: dto.Id))
             throw new InvalidOperationException("El nombre de usuario ya está siendo utilizado por otra cuenta.");
 
-        if (await _userRepository.ExistsMailAsync(dto.Mail.Trim(), excludeId: dto.IdUsuario))
+        if (await _userRepository.ExistsEmailAsync(dto.Email.Trim(), excludeId: dto.Id))
             throw new InvalidOperationException("El correo electrónico ya está siendo utilizado por otra cuenta.");
 
         var passwordHash = existingUser.PasswordHash;
@@ -117,12 +117,12 @@ public class UserService : IUserService
         }
 
         // Conservar el rol de la entidad seguida por EF hasta validar el último Dueño.
-        var proposedUser = new Usuario
+        var proposedUser = new User
         {
-            IdUsuario = existingUser.IdUsuario,
-            NombreUsuario = dto.NombreUsuario.Trim(),
-            Mail = dto.Mail.Trim(),
-            IdRol = dto.IdRol,
+            Id = existingUser.Id,
+            UserName = dto.UserName.Trim(),
+            Email = dto.Email.Trim(),
+            RoleId = dto.RoleId,
             PasswordHash = passwordHash
         };
 
@@ -146,12 +146,12 @@ public class UserService : IUserService
             throw new UnauthorizedAccessException();
     }
 
-    private static bool IsOwnerRole(Rol role) =>
-        string.Equals(role.Nombre, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
+    private static bool IsOwnerRole(Role role) =>
+        string.Equals(role.Name, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
 
-    private void RequireManageableUser(Usuario user)
+    private void RequireManageableUser(User user)
     {
-        if (!_currentUser.IsOwner && IsOwnerRole(user.IdRolNavigation))
+        if (!_currentUser.IsOwner && IsOwnerRole(user.Role))
             throw new UnauthorizedAccessException();
     }
 

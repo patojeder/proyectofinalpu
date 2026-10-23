@@ -12,107 +12,94 @@ public partial class VentaStockDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Categoria> Categorias { get; set; }
+    public virtual DbSet<Category> Categories { get; set; }
 
-    public virtual DbSet<Permiso> Permisos { get; set; }
+    public virtual DbSet<Permission> Permissions { get; set; }
 
-    public virtual DbSet<Rol> Rols { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<Service> Services { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Categoria>(entity =>
+        modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.IdCategoria);
+            entity.HasIndex(e => e.Name, "UQ_Categories_Name").IsUnique();
 
-            entity.ToTable("categoria");
-
-            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
-            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(100)
-                .HasColumnName("nombre");
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Permiso>(entity =>
+        modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.IdPermiso);
+            entity.HasIndex(e => e.Name, "UQ_Permissions_Name").IsUnique();
 
-            entity.ToTable("permiso");
-
-            entity.HasIndex(e => e.Nombre, "UQ_permiso_nombre").IsUnique();
-
-            entity.Property(e => e.IdPermiso).HasColumnName("id_permiso");
-            entity.Property(e => e.Descripcion)
-                .HasMaxLength(255)
-                .HasColumnName("descripcion");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(100)
-                .HasColumnName("nombre");
+            entity.Property(e => e.Description).HasMaxLength(255);
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Rol>(entity =>
+        modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.IdRol);
+            entity.HasIndex(e => e.Name, "UQ_Roles_Name").IsUnique();
 
-            entity.ToTable("rol");
+            entity.Property(e => e.Name).HasMaxLength(50);
 
-            entity.HasIndex(e => e.Nombre, "UQ_rol_nombre").IsUnique();
-
-            entity.Property(e => e.IdRol).HasColumnName("id_rol");
-            entity.Property(e => e.EsPersonalizado).HasColumnName("es_personalizado");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .HasColumnName("nombre");
-
-            entity.HasMany(d => d.IdPermisos).WithMany(p => p.IdRols)
+            entity.HasMany(d => d.Permissions).WithMany(p => p.Roles)
                 .UsingEntity<Dictionary<string, object>>(
-                    "RolPermiso",
-                    r => r.HasOne<Permiso>().WithMany()
-                        .HasForeignKey("IdPermiso")
-                        .HasConstraintName("FK_rol_permiso_permiso"),
-                    l => l.HasOne<Rol>().WithMany()
-                        .HasForeignKey("IdRol")
-                        .HasConstraintName("FK_rol_permiso_rol"),
+                    "RolePermission",
+                    r => r.HasOne<Permission>().WithMany()
+                        .HasForeignKey("PermissionId")
+                        .HasConstraintName("FK_RolePermissions_Permissions"),
+                    l => l.HasOne<Role>().WithMany()
+                        .HasForeignKey("RoleId")
+                        .HasConstraintName("FK_RolePermissions_Roles"),
                     j =>
                     {
-                        j.HasKey("IdRol", "IdPermiso");
-                        j.ToTable("rol_permiso");
-                        j.IndexerProperty<int>("IdRol").HasColumnName("id_rol");
-                        j.IndexerProperty<int>("IdPermiso").HasColumnName("id_permiso");
+                        j.HasKey("RoleId", "PermissionId");
+                        j.ToTable("RolePermissions");
                     });
         });
 
-        modelBuilder.Entity<Usuario>(entity =>
+        modelBuilder.Entity<Service>(entity =>
         {
-            entity.HasKey(e => e.IdUsuario);
+            entity.HasIndex(e => e.Name, "UQ_Services_Name").IsUnique();
 
-            entity.ToTable("usuario");
+            entity.Property(e => e.Name).HasMaxLength(100);
 
-            entity.HasIndex(e => e.IdRol, "IX_usuario_id_rol");
+            entity.HasMany(d => d.Categories).WithMany(p => p.Services)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ServiceCategory",
+                    r => r.HasOne<Category>().WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_ServiceCategories_Categories"),
+                    l => l.HasOne<Service>().WithMany()
+                        .HasForeignKey("ServiceId")
+                        .HasConstraintName("FK_ServiceCategories_Services"),
+                    j =>
+                    {
+                        j.HasKey("ServiceId", "CategoryId");
+                        j.ToTable("ServiceCategories");
+                        j.HasIndex(new[] { "CategoryId" }, "IX_ServiceCategories_CategoryId");
+                    });
+        });
 
-            entity.HasIndex(e => e.NombreUsuario, "UQ_usuario_nombre").IsUnique();
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(e => e.RoleId, "IX_Users_RoleId");
 
-            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
-            entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_usuario_fecha_creacion")
-                .HasColumnName("fecha_creacion");
-            entity.Property(e => e.IdRol).HasColumnName("id_rol");
-            entity.Property(e => e.Mail)
-                .HasMaxLength(100)
-                .HasColumnName("mail");
-            entity.Property(e => e.NombreUsuario)
-                .HasMaxLength(50)
-                .HasColumnName("nombre_usuario");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(255)
-                .HasColumnName("password_hash");
+            entity.HasIndex(e => e.UserName, "UQ_Users_UserName").IsUnique();
 
-            entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
-                .HasForeignKey(d => d.IdRol)
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_Users_CreatedAtUtc");
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.UserName).HasMaxLength(50);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_usuario_rol");
+                .HasConstraintName("FK_Users_Roles");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -44,12 +44,12 @@ public class CategoryService : ICategoryService
     public async Task CreateAsync(CreateCategoryDto dto)
     {
         RequirePermission(CategoryPermissions.Create);
-        var exists = await _categoryRepository.ExistsByNameAsync(dto.Nombre.Trim());
+        var exists = await _categoryRepository.ExistsByNameAsync(dto.Name.Trim());
         if (exists)
-            throw new InvalidOperationException($"Ya existe una categoría con el nombre '{dto.Nombre}'.");
+            throw new InvalidOperationException($"Ya existe una categoría con el nombre '{dto.Name}'.");
 
-        var category = _mapper.Map<Categoria>(dto);
-        category.Nombre = dto.Nombre.Trim();
+        var category = _mapper.Map<Category>(dto);
+        category.Name = dto.Name.Trim();
 
         await _categoryRepository.CreateAsync(category);
     }
@@ -57,16 +57,16 @@ public class CategoryService : ICategoryService
     public async Task UpdateAsync(EditCategoryDto dto)
     {
         RequirePermission(CategoryPermissions.Update);
-        var category = await _categoryRepository.GetByIdAsync(dto.IdCategoria);
+        var category = await _categoryRepository.GetByIdAsync(dto.Id);
         if (category is null)
-            throw new InvalidOperationException($"No se encontró la categoría con id {dto.IdCategoria}.");
+            throw new InvalidOperationException($"No se encontró la categoría con id {dto.Id}.");
 
-        var exists = await _categoryRepository.ExistsByNameAsync(dto.Nombre.Trim(), dto.IdCategoria);
+        var exists = await _categoryRepository.ExistsByNameAsync(dto.Name.Trim(), dto.Id);
         if (exists)
-            throw new InvalidOperationException($"Ya existe otra categoría con el nombre '{dto.Nombre}'.");
+            throw new InvalidOperationException($"Ya existe otra categoría con el nombre '{dto.Name}'.");
 
-        category.Nombre = dto.Nombre.Trim();
-        category.Descripcion = dto.Descripcion;
+        category.Name = dto.Name.Trim();
+        category.Description = dto.Description;
 
         await _categoryRepository.UpdateAsync(category);
     }

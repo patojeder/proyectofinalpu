@@ -2,5 +2,8 @@ namespace VentaStock.Domain.Security;
 
 public static class SystemRoles
 {
-    public const string Owner = "Owner";
+    public const string Owner = "Dueño";
+    public const string UserManager = "Gestor de Usuarios";
+    public const string ProductManager = "Gestor de Productos";
+    public const string Salesperson = "Vendedor";
 }

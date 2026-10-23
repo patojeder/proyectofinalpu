@@ -4,6 +4,6 @@ namespace VentaStock.Domain.Contracts;
 
 public interface IRoleRepository
 {
-    Task<IEnumerable<Rol>> GetAllAsync();
-    Task<Rol?> GetByIdAsync(int roleId);
+    Task<IEnumerable<Role>> GetAllAsync();
+    Task<Role?> GetByIdAsync(int roleId);
 }

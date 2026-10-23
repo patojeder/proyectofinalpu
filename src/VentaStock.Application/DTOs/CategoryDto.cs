@@ -2,7 +2,7 @@ namespace VentaStock.Application.DTOs;
 
 public class CategoryDto
 {
-    public int IdCategoria { get; set; }
-    public string Nombre { get; set; } = string.Empty;
-    public string? Descripcion { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }

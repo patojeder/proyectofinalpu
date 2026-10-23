@@ -4,26 +4,26 @@ GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-IF OBJECT_ID(N'dbo.rol', N'U') IS NULL
-    OR OBJECT_ID(N'dbo.permiso', N'U') IS NULL
-    OR OBJECT_ID(N'dbo.rol_permiso', N'U') IS NULL
-    THROW 50001, 'Ejecutar primero 001_CreateSchema.sql.', 1;
+IF OBJECT_ID(N'dbo.Roles', N'U') IS NULL
+    OR OBJECT_ID(N'dbo.Permissions', N'U') IS NULL
+    OR OBJECT_ID(N'dbo.RolePermissions', N'U') IS NULL
+    THROW 50001, 'Ejecutar primero 001_CreateSchema.sql o actualizar el esquema a inglés.', 1;
 
 BEGIN TRY
     BEGIN TRANSACTION;
 
     DECLARE @Roles TABLE (Name NVARCHAR(50) PRIMARY KEY);
-    INSERT INTO @Roles VALUES (N'Owner'), (N'UserManager'), (N'ProductManager'), (N'Vendedor');
+    INSERT INTO @Roles VALUES (N'Dueño'), (N'Gestor de Usuarios'), (N'Gestor de Productos'), (N'Vendedor');
 
     IF EXISTS (
-        SELECT 1 FROM dbo.rol r INNER JOIN @Roles n ON n.Name = r.nombre
-        WHERE r.es_personalizado = 1
+        SELECT 1 FROM dbo.Roles r INNER JOIN @Roles n ON n.Name = r.Name
+        WHERE r.IsCustom = 1
     )
         THROW 50002, 'Un nombre de rol reservado está asignado a un rol personalizado.', 1;
 
-    INSERT INTO dbo.rol (nombre, es_personalizado)
+    INSERT INTO dbo.Roles (Name, IsCustom)
     SELECT n.Name, 0 FROM @Roles n
-    WHERE NOT EXISTS (SELECT 1 FROM dbo.rol r WHERE r.nombre = n.Name);
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.Roles r WHERE r.Name = n.Name);
 
     DECLARE @Permissions TABLE (Name NVARCHAR(100) PRIMARY KEY, Description NVARCHAR(255));
     INSERT INTO @Permissions VALUES
@@ -36,26 +36,30 @@ BEGIN TRY
         (N'Categories.Create', N'Crear categorías.'),
         (N'Categories.Update', N'Modificar categorías.'),
         (N'Categories.Delete', N'Eliminar categorías.'),
+        (N'Services.Read', N'Consultar servicios.'),
+        (N'Services.Create', N'Crear servicios.'),
+        (N'Services.Update', N'Modificar servicios.'),
+        (N'Services.Delete', N'Eliminar servicios.'),
         (N'Sales.Read', N'Consultar ventas.'),
         (N'Sales.Create', N'Realizar ventas.');
 
-    INSERT INTO dbo.permiso (nombre, descripcion)
+    INSERT INTO dbo.Permissions (Name, Description)
     SELECT n.Name, n.Description FROM @Permissions n
-    WHERE NOT EXISTS (SELECT 1 FROM dbo.permiso p WHERE p.nombre = n.Name);
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.Permissions p WHERE p.Name = n.Name);
 
-    INSERT INTO dbo.rol_permiso (id_rol, id_permiso)
-    SELECT r.id_rol, p.id_permiso
-    FROM dbo.rol r
-    CROSS JOIN dbo.permiso p
-    INNER JOIN @Permissions n ON n.Name = p.nombre
-    WHERE r.es_personalizado = 0 AND (
-        r.nombre = N'Owner'
-        OR (r.nombre = N'UserManager' AND p.nombre LIKE N'Users.%')
-        OR (r.nombre = N'ProductManager' AND p.nombre LIKE N'Categories.%')
-        OR (r.nombre = N'Vendedor' AND p.nombre IN (N'Sales.Read', N'Sales.Create', N'Categories.Read'))
+    INSERT INTO dbo.RolePermissions (RoleId, PermissionId)
+    SELECT r.Id, p.Id
+    FROM dbo.Roles r
+    CROSS JOIN dbo.Permissions p
+    INNER JOIN @Permissions n ON n.Name = p.Name
+    WHERE r.IsCustom = 0 AND (
+        r.Name = N'Dueño'
+        OR (r.Name = N'Gestor de Usuarios' AND p.Name LIKE N'Users.%')
+        OR (r.Name = N'Gestor de Productos' AND (p.Name LIKE N'Categories.%' OR p.Name LIKE N'Services.%'))
+        OR (r.Name = N'Vendedor' AND p.Name IN (N'Sales.Read', N'Sales.Create', N'Categories.Read', N'Services.Read'))
     ) AND NOT EXISTS (
-        SELECT 1 FROM dbo.rol_permiso rp
-        WHERE rp.id_rol = r.id_rol AND rp.id_permiso = p.id_permiso
+        SELECT 1 FROM dbo.RolePermissions rp
+        WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
     );
 
     COMMIT TRANSACTION;

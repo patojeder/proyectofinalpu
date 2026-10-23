@@ -2,10 +2,10 @@ namespace VentaStock.Application.DTOs;
 
 public class UserDto
 {
-    public int IdUsuario { get; set; }
-    public string NombreUsuario { get; set; } = string.Empty;
-    public string Mail { get; set; } = string.Empty;
-    public int IdRol { get; set; }
-    public string Rol { get; set; } = string.Empty;
-    public DateTime FechaCreacion { get; set; }
+    public int Id { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public int RoleId { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public DateTime CreatedAtUtc { get; set; }
 }
