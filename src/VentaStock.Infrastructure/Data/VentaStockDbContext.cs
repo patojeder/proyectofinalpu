@@ -16,6 +16,10 @@ public partial class VentaStockDbContext : DbContext
 
     public virtual DbSet<Permission> Permissions { get; set; }
 
+    public virtual DbSet<Product> Products { get; set; }
+
+    public virtual DbSet<ProductStock> ProductStocks { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Service> Services { get; set; }
@@ -37,6 +41,50 @@ public partial class VentaStockDbContext : DbContext
 
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasIndex(e => e.Barcode, "UQ_Products_Barcode").IsUnique();
+
+            entity.HasIndex(e => e.Name, "UQ_Products_Name").IsUnique();
+
+            entity.Property(e => e.Barcode)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(N'INT-'+replace(CONVERT([nvarchar](36),newid()),N'-',N''))", "DF_Products_Barcode");
+            entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.SalePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Sector).HasMaxLength(50);
+            entity.Property(e => e.Shelf).HasMaxLength(50);
+
+            entity.HasMany(d => d.Categories).WithMany(p => p.Products)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ProductCategory",
+                    r => r.HasOne<Category>().WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_ProductCategories_Categories"),
+                    l => l.HasOne<Product>().WithMany()
+                        .HasForeignKey("ProductId")
+                        .HasConstraintName("FK_ProductCategories_Products"),
+                    j =>
+                    {
+                        j.HasKey("ProductId", "CategoryId");
+                        j.ToTable("ProductCategories");
+                        j.HasIndex(new[] { "CategoryId" }, "IX_ProductCategories_CategoryId");
+                    });
+        });
+
+        modelBuilder.Entity<ProductStock>(entity =>
+        {
+            entity.HasKey(e => e.ProductId);
+
+            entity.Property(e => e.ProductId).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Product).WithOne(p => p.ProductStock)
+                .HasForeignKey<ProductStock>(d => d.ProductId)
+                .HasConstraintName("FK_ProductStocks_Products");
         });
 
         modelBuilder.Entity<Role>(entity =>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -36,6 +36,13 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="@(CurrentUser.HasPermission(CategoryPermissions.Read) ? "Index" : "Create")">Categorías</a>
+                            </li>
+                        }
+
+                        @if (CurrentUser.HasPermission(ProductPermissions.Read) || CurrentUser.HasPermission(ProductPermissions.Create))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Product" asp-action="@(CurrentUser.HasPermission(ProductPermissions.Read) ? "Index" : "Create")">Productos</a>
                             </li>
                         }
 
