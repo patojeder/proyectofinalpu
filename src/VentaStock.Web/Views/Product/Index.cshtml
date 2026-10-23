@@ -1,0 +1,90 @@
+@model IEnumerable<VentaStock.Application.DTOs.ProductDto>
+
+@{
+    ViewData["Title"] = "Productos";
+    var canUpdate = CurrentUser.HasPermission(ProductPermissions.Update);
+    var canDelete = CurrentUser.HasPermission(ProductPermissions.Delete);
+    var canReadCost = CurrentUser.HasPermission(ProductPermissions.ReadCost);
+    var canReadSale = CurrentUser.HasPermission(ProductPermissions.ReadSalePrice);
+    var canReadStock = CurrentUser.HasPermission(StockPermissions.Read);
+    var canManagePrices = canReadCost && canReadSale && CurrentUser.HasPermission(ProductPermissions.UpdatePrices);
+    var showActions = canUpdate || canDelete || canManagePrices;
+    var columnCount = 5 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 2 : 0) + (showActions ? 1 : 0);
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Productos</h2>
+            <p class="text-muted mb-0">Catálogo de productos</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Volver al inicio</a>
+            @if (CurrentUser.HasPermission(ProductPermissions.Create))
+            {
+                <a asp-action="Create" class="btn btn-primary">+ Nuevo producto</a>
+            }
+        </div>
+    </div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" role="alert">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
+    }
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Código de barras</th>
+                        <th>Descripción</th>
+                        <th>Categorías</th>
+                        <th>Ubicación</th>
+                        @if (canReadCost) { <th>Costo</th> }
+                        @if (canReadSale) { <th>Precio de venta</th> }
+                        @if (canReadStock) { <th>Existencias</th><th>Stock mínimo</th> }
+                        @if (showActions) { <th class="text-end">Acciones</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="@columnCount" class="text-center py-4 text-muted">No hay productos registrados.</td></tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.Name</td>
+                            <td>@item.Barcode</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)</td>
+                            <td>@string.Join(", ", item.Categories)</td>
+                            <td>
+                                <div>Sector: @(string.IsNullOrWhiteSpace(item.Sector) ? "—" : item.Sector)</div>
+                                <div>Estante: @(string.IsNullOrWhiteSpace(item.Shelf) ? "—" : item.Shelf)</div>
+                            </td>
+                            @if (canReadCost) { <td>@(item.CostPrice?.ToString("N2") ?? "Sin asignar")</td> }
+                            @if (canReadSale) { <td>@(item.SalePrice?.ToString("N2") ?? "Sin asignar")</td> }
+                            @if (canReadStock)
+                            {
+                                <td>@(item.Quantity?.ToString() ?? "Sin registro")</td>
+                                <td>@(item.MinimumQuantity?.ToString() ?? "Sin registro")</td>
+                            }
+                            @if (showActions)
+                            {
+                                <td class="text-end text-nowrap">
+                                    @if (canUpdate) { <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a> }
+                                    @if (canManagePrices) { <a asp-action="Prices" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Precios</a> }
+                                    @if (canDelete) { <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Eliminar</a> }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

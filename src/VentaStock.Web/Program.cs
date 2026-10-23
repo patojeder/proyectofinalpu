@@ -29,7 +29,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in UserPermissions.All.Concat(CategoryPermissions.All).Concat(ServicePermissions.All).Concat(SalesPermissions.All))
+    foreach (var permission in UserPermissions.All.Concat(CategoryPermissions.All).Concat(ServicePermissions.All).Concat(SalesPermissions.All).Concat(ProductPermissions.All).Concat(StockPermissions.All))
     {
         options.AddPolicy(permission, policy => policy.RequireAuthenticatedUser()
             .RequireAssertion(context => context.User.IsInRole(SystemRoles.Owner)

@@ -13,7 +13,7 @@ BEGIN TRY
     BEGIN TRANSACTION;
 
     DECLARE @Roles TABLE (Name NVARCHAR(50) PRIMARY KEY);
-    INSERT INTO @Roles VALUES (N'Dueño'), (N'Gestor de Usuarios'), (N'Gestor de Productos'), (N'Vendedor');
+    INSERT INTO @Roles VALUES (N'Dueño'), (N'Gestor de Usuarios'), (N'Gestor de Productos'), (N'Gestor de Stock'), (N'Gestor de Precios'), (N'Vendedor');
 
     IF EXISTS (
         SELECT 1 FROM dbo.Roles r INNER JOIN @Roles n ON n.Name = r.Name
@@ -40,6 +40,14 @@ BEGIN TRY
         (N'Services.Create', N'Crear servicios.'),
         (N'Services.Update', N'Modificar servicios.'),
         (N'Services.Delete', N'Eliminar servicios.'),
+        (N'Products.Read', N'Consultar productos.'),
+        (N'Products.Create', N'Crear productos.'),
+        (N'Products.Update', N'Modificar productos.'),
+        (N'Products.Delete', N'Eliminar productos.'),
+        (N'Products.ReadCost', N'Consultar costo de productos.'),
+        (N'Products.ReadSalePrice', N'Consultar precio de venta de productos.'),
+        (N'Products.UpdatePrices', N'Asignar o modificar precios de productos.'),
+        (N'Stock.Read', N'Consultar existencias de productos.'),
         (N'Sales.Read', N'Consultar ventas.'),
         (N'Sales.Create', N'Realizar ventas.');
 
@@ -55,8 +63,10 @@ BEGIN TRY
     WHERE r.IsCustom = 0 AND (
         r.Name = N'Dueño'
         OR (r.Name = N'Gestor de Usuarios' AND p.Name LIKE N'Users.%')
-        OR (r.Name = N'Gestor de Productos' AND (p.Name LIKE N'Categories.%' OR p.Name LIKE N'Services.%'))
-        OR (r.Name = N'Vendedor' AND p.Name IN (N'Sales.Read', N'Sales.Create', N'Categories.Read', N'Services.Read'))
+        OR (r.Name = N'Gestor de Productos' AND (p.Name LIKE N'Categories.%' OR p.Name LIKE N'Services.%' OR p.Name LIKE N'Products.%' OR p.Name = N'Stock.Read'))
+        OR (r.Name = N'Gestor de Stock' AND p.Name IN (N'Products.Read', N'Products.Create', N'Stock.Read', N'Categories.Read'))
+        OR (r.Name = N'Gestor de Precios' AND p.Name IN (N'Products.Read', N'Products.ReadCost', N'Products.ReadSalePrice', N'Products.UpdatePrices', N'Categories.Read'))
+        OR (r.Name = N'Vendedor' AND p.Name IN (N'Sales.Read', N'Sales.Create', N'Categories.Read', N'Services.Read', N'Products.Read', N'Products.ReadSalePrice', N'Stock.Read'))
     ) AND NOT EXISTS (
         SELECT 1 FROM dbo.RolePermissions rp
         WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id

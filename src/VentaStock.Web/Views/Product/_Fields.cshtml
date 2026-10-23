@@ -1,0 +1,42 @@
+@model VentaStock.Application.DTOs.ProductFieldsDto
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="mb-3">
+    <label asp-for="Name" class="form-label fw-semibold"></label>
+    <input asp-for="Name" class="form-control" autofocus />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Description" class="form-label fw-semibold"></label>
+    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+</div>
+<div class="mb-3">
+    <label asp-for="Barcode" class="form-label fw-semibold"></label>
+    <input asp-for="Barcode" class="form-control" aria-describedby="barcode-help" />
+    <div id="barcode-help" class="form-text">Opcional. Al crear sin código se asigna uno interno único. Al editar, dejarlo vacío conserva el código actual.</div>
+    <span asp-validation-for="Barcode" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="CategoryIds" class="form-label fw-semibold"></label>
+    <select asp-for="CategoryIds" asp-items="ViewBag.Categories" class="form-select" multiple size="5" aria-describedby="categories-help"></select>
+    <div id="categories-help" class="form-text">Seleccioná al menos una categoría. Podés elegir varias con Ctrl.</div>
+    <span asp-validation-for="CategoryIds" class="text-danger"></span>
+</div>
+<div class="row">
+    <div class="col-sm-6 mb-3">
+        <label asp-for="Sector" class="form-label fw-semibold"></label>
+        <input asp-for="Sector" class="form-control" />
+        <span asp-validation-for="Sector" class="text-danger"></span>
+    </div>
+    <div class="col-sm-6 mb-3">
+        <label asp-for="Shelf" class="form-label fw-semibold"></label>
+        <input asp-for="Shelf" class="form-control" />
+        <span asp-validation-for="Shelf" class="text-danger"></span>
+    </div>
+</div>
+<div class="mb-4">
+    <label asp-for="MinimumQuantity" class="form-label fw-semibold"></label>
+    <input asp-for="MinimumQuantity" class="form-control" type="number" min="0" step="1" aria-describedby="minimum-help" />
+    <div id="minimum-help" class="form-text">Si no se indica, se guarda 0. Este valor no modifica las existencias.</div>
+    <span asp-validation-for="MinimumQuantity" class="text-danger"></span>
+</div>
