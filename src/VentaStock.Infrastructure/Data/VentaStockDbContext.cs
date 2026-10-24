@@ -14,6 +14,8 @@ public partial class VentaStockDbContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
+    public virtual DbSet<Customer> Customers { get; set; }
+
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
@@ -35,6 +37,31 @@ public partial class VentaStockDbContext : DbContext
             entity.HasIndex(e => e.Name, "UQ_Categories_Name").IsUnique();
 
             entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.HasIndex(e => new { e.LastName, e.FirstName }, "IX_Customers_LastName_FirstName");
+
+            entity.HasIndex(e => e.DocumentNumber, "UQ_Customers_DocumentNumber").IsUnique();
+
+            entity.Property(e => e.Address).HasMaxLength(250);
+            entity.Property(e => e.CustomerType)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.DocumentNumber)
+                .HasMaxLength(11)
+                .IsUnicode(false);
+            entity.Property(e => e.DocumentType)
+                .HasMaxLength(4)
+                .IsUnicode(false);
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.Version)
+                .IsRowVersion()
+                .IsConcurrencyToken();
         });
 
         modelBuilder.Entity<Permission>(entity =>

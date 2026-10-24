@@ -7,5 +7,6 @@ public static class SystemRoles
     public const string ProductManager = "Gestor de Productos";
     public const string StockManager = "Gestor de Stock";
     public const string PriceManager = "Gestor de Precios";
+    public const string CustomerManager = "Gestor de Clientes";
     public const string Salesperson = "Vendedor";
 }

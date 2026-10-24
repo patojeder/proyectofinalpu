@@ -9,7 +9,7 @@ Base del proyecto final: ASP.NET Core MVC en .NET 10 y SQL Server, con Entity Fr
 - **VentaStock.Infrastructure**: contexto generado desde SQL Server y repositorios EF Core.
 - **VentaStock.Web**: presentación MVC y registro de dependencias.
 
-La aplicación incluye autenticación por cookies, administración de usuarios, categorías, servicios, productos, stock y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
+La aplicación incluye autenticación por cookies, administración de usuarios, categorías, servicios, productos, stock, clientes y un panel de módulos con accesos según permisos. Las constantes de roles y permisos se centralizan en `VentaStock.Domain/Security`.
 
 ## Ejecución
 
@@ -65,6 +65,35 @@ Compras, proveedores y descuentos de stock por ventas quedan para tareas posteri
 4. Abrir dos formularios: registrar un ingreso en uno e intentar confirmar un conteo abierto previamente en el otro. Debe avisar que cambió el saldo antes de permitir reconfirmar.
 5. Registrar ingresos simultáneos de distintas cantidades; comprobar que ambos se sumen y que cada movimiento encadene su saldo con el anterior. En un producto de prueba con saldo negativo previo, verificar que ingresar 10 sobre −3 deje 7.
 6. Revisar alertas al mínimo y por debajo; intentar eliminar un producto con historial después de ajustar sus existencias a 0. Debe rechazarse.
+
+## Clientes
+
+El módulo incluye listado, búsqueda, alta y modificación. Nombre y apellido son obligatorios; dirección, teléfono y correo son opcionales y pueden repetirse. No hay eliminación ni campos de saldo inicial o límite de deuda en esta entrega.
+
+- Documentos: DNI, CUIL y CUIT. El número es único incluso si se selecciona otro tipo de documento: un CUIL y un CUIT con el mismo número no generan dos clientes.
+- DNI: hasta 8 dígitos, distinto de cero. Se aceptan puntos y espacios; se guarda con 8 dígitos, completando ceros a la izquierda para impedir duplicados por formato.
+- CUIL/CUIT: 11 dígitos con o sin guiones, validación de prefijo y dígito verificador módulo 11 en el servidor, tanto al crear como al editar. Se guardan sin guiones. La validación se centraliza en `CustomerDocumentValidator` y se reutiliza desde DTOs y servicio.
+- Cuenta corriente: exige CUIL o CUIT válido, incluso al cambiar un cliente previamente de contado. Esto clasifica al cliente; la cuenta financiera, los saldos y sus movimientos se implementarán en T15. Antes de habilitar saldos, T15 debe agregar la comprobación transaccional de saldo cero para volver a Contado, conservando historial.
+- Búsqueda: nombre, apellido, documento o teléfono. La edición utiliza `rowversion` para rechazar sobrescrituras cuando otro usuario modificó al mismo cliente.
+
+| Rol | Consulta | Alta de contado | Alta de cuenta corriente | Modificación |
+|---|---|---|---|---|
+| Dueño | Sí | Sí | Sí | Sí |
+| Gestor de Clientes | Sí | Sí | Sí | Sí |
+| Vendedor | Sí | Sí | No | No |
+
+Los permisos son `Customers.Read`, `Customers.Create`, `Customers.CreateOnAccount` y `Customers.Update`. Crear un cliente de cuenta corriente requiere ambos permisos de alta. Pasar de Contado a Cuenta corriente requiere edición y `Customers.CreateOnAccount`. Estos permisos no conceden acceso a saldos ni movimientos financieros.
+
+La validación es local: no consulta padrones ni confirma titularidad o inscripción. Se consultaron como referencia para la estructura y los ponderadores la [implementación de python-stdnum](https://github.com/arthurdejong/python-stdnum/blob/master/stdnum/ar/cuit.py) y la [ayuda de ARCA sobre CUIL/CUIT](https://www.afip.gov.ar/simplificacionregistral/alta-ya/ayuda/documentos/Errores-frecuentes-CUIL-o-CUIT-inexistente.pdf), que distingue la consistencia del número de su existencia en los registros.
+
+### Verificación manual pendiente de Clientes
+
+1. Cerrar sesión y volver a ingresar. Comprobar que el Vendedor consulta ambos tipos, crea solo Contado y no puede editar ni crear Cuenta corriente alterando la solicitud. Dueño/Gestor de Clientes deben poder crear ambos tipos y editar.
+2. Crear con DNI y datos de contacto vacíos. Rechazar nombre o apellido vacíos, DNI cero y documentos repetidos. Repetir nombre, apellido, teléfono o correo en otros clientes debe estar permitido.
+3. Probar CUIL/CUIT con y sin guiones: deben representar el mismo documento. Rechazar letras, longitud incorrecta, prefijo inválido y dígito verificador incorrecto, tanto en alta como edición.
+4. Rechazar Cuenta corriente con DNI. Permitirla con CUIL/CUIT válido, también al cambiar desde Contado. Mientras el cliente sea Cuenta corriente, impedir cambiar su documento a DNI.
+5. Buscar por nombre completo, apellido, documento con separadores y teléfono. Revisar formatos de contacto cuando se proporcionan.
+6. Abrir la edición en dos pestañas, guardar en una e intentar guardar en la otra. Debe exigir recargar los datos y no sobrescribir la primera modificación.
 
 ## Configuración y secretos
 

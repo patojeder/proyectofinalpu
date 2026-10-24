@@ -48,6 +48,18 @@
                 </div>
             }
 
+            @if (CurrentUser.HasPermission(CustomerPermissions.Read) || CurrentUser.HasPermission(CustomerPermissions.Create))
+            {
+                <div class="col-sm-6 col-md-4">
+                    <div class="card h-100 shadow-sm border text-center p-3">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <h4 class="card-title fw-semibold text-dark mb-4">Clientes</h4>
+                            <a asp-controller="Customer" asp-action="@(CurrentUser.HasPermission(CustomerPermissions.Read) ? "Index" : "Create")" class="btn btn-primary w-100 py-2">Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+            }
+
             @if (StockPermissions.All.Any(CurrentUser.HasPermission))
             {
                 <div class="col-sm-6 col-md-4">
