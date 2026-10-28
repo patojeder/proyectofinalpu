@@ -6,10 +6,17 @@ document.addEventListener('click', (event) => {
     if (!input) return;
 
     const showPassword = input.type === 'password';
+    const showIcon = button.querySelector('[data-password-icon="show"]');
+    const hideIcon = button.querySelector('[data-password-icon="hide"]');
+    if (!showIcon || !hideIcon) return;
+
     input.type = showPassword ? 'text' : 'password';
-    button.textContent = showPassword ? 'Ocultar' : 'Mostrar';
+    showIcon.hidden = showPassword;
+    hideIcon.hidden = !showPassword;
     button.setAttribute('aria-pressed', String(showPassword));
-    button.setAttribute('aria-label', `${showPassword ? 'Ocultar' : 'Mostrar'} contraseña`);
+    const label = `${showPassword ? 'Ocultar' : 'Mostrar'} contraseña`;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
 });
 
 document.addEventListener('keydown', (event) => {

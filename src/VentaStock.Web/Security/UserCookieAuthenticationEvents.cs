@@ -30,6 +30,12 @@ public class UserCookieAuthenticationEvents : CookieAuthenticationEvents
         }
 
         var freshPrincipal = UserClaimsPrincipalFactory.Create(user);
+        if (!UserClaimsPrincipalFactory.HasSameCredential(context.Principal!, freshPrincipal))
+        {
+            await RejectAsync(context, "credentialsChanged");
+            return;
+        }
+
         if (UserClaimsPrincipalFactory.HasSameAccess(context.Principal!, freshPrincipal))
             return;
 
@@ -39,17 +45,18 @@ public class UserCookieAuthenticationEvents : CookieAuthenticationEvents
 
     public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
     {
-        if (!context.HttpContext.Items.ContainsKey(SessionInvalidatedItemKey))
+        if (!context.HttpContext.Items.TryGetValue(SessionInvalidatedItemKey, out var status)
+            || status is not string sessionStatus)
             return base.RedirectToLogin(context);
 
-        var loginUrl = QueryHelpers.AddQueryString(context.RedirectUri, "sessionStatus", "invalidated");
+        var loginUrl = QueryHelpers.AddQueryString(context.RedirectUri, "sessionStatus", sessionStatus);
         context.Response.Redirect(loginUrl);
         return Task.CompletedTask;
     }
 
-    private static async Task RejectAsync(CookieValidatePrincipalContext context)
+    private static async Task RejectAsync(CookieValidatePrincipalContext context, string sessionStatus = "invalidated")
     {
-        context.HttpContext.Items[SessionInvalidatedItemKey] = true;
+        context.HttpContext.Items[SessionInvalidatedItemKey] = sessionStatus;
         context.RejectPrincipal();
         await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }

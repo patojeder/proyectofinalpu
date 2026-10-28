@@ -60,9 +60,10 @@ No ejecutar el script de creación sobre tablas existentes. Seleccionar la base 
 7. `Updates/007_CreateStockMovements.sql`: crea el historial; conserva saldos existentes distintos de 0 como movimientos `OpeningBalance` del actor Sistema. Se detiene si la tabla ya existe.
 8. `Updates/008_CreateCustomers.sql`: crea clientes con documento único y versión de concurrencia. No crea cuentas corrientes financieras ni saldos. Se detiene si la tabla ya existe.
 9. `Updates/009_RemoveEmailColumns.sql`: elimina las columnas de correo de `Users` y `Customers`, junto con sus restricciones o índices si existieran. Conserva las cuentas y los clientes, excepto esos datos de correo.
-10. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
+10. `Updates/010_RequireTemporaryPasswordChange.sql`: agrega el indicador para obligar al usuario a cambiar la contraseña temporal. Las cuentas existentes quedan con `0` y no se les exige un cambio.
+11. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
 
-Para una base que ya tiene productos, stock, historial y clientes, aplicar los pasos 9 y 10. Si todavía no tiene la tabla de clientes, aplicar primero el paso 8. Si todavía no tiene productos o historial, aplicar antes los pasos 6 y 7 que correspondan. No repetir los pasos 6, 7 u 8 si sus tablas ya existen. Las bases nuevas creadas con el esquema actual ya incluyen estas tablas y no tienen columnas de correo; solo necesitan el seed.
+Para una base que ya tiene productos, stock, historial y clientes, aplicar los pasos 9, 10 y 11. Si todavía no tiene la tabla de clientes, aplicar primero el paso 8. Si todavía no tiene productos o historial, aplicar antes los pasos 6 y 7 que correspondan. No repetir los pasos 6, 7 u 8 si sus tablas ya existen. Las bases nuevas creadas con el esquema actual ya incluyen estas tablas y el indicador de cambio de contraseña; no tienen columnas de correo y solo necesitan el seed.
 
 Los pasos 1 y 2 se aplican solo si la base todavía tiene columnas o permisos antiguos. Los pasos 3 y 4 son para la base anterior en español; no ejecutarlos sobre una inicialización nueva con `001_CreateSchema.sql`. El paso 5 se aplica a bases que tengan los nombres de roles anteriores en inglés. El paso 9 puede ejecutarse luego de crear `Users` y `Customers`; si el esquema ya no tiene esas columnas, no hace cambios.
 

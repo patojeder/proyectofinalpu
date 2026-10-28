@@ -71,13 +71,14 @@ BEGIN TRY
 
     UPDATE u
        SET u.UserName = t.UserName,
-           u.PasswordHash = t.PasswordHash
+           u.PasswordHash = t.PasswordHash,
+           u.MustChangePassword = 0
     FROM dbo.Users u
     INNER JOIN dbo.Roles r ON r.Id = u.RoleId
     INNER JOIN @TestAccounts t ON t.RoleName = r.Name;
 
-    INSERT INTO dbo.Users (RoleId, UserName, PasswordHash, CreatedAtUtc)
-    SELECT r.Id, t.UserName, t.PasswordHash, SYSUTCDATETIME()
+    INSERT INTO dbo.Users (RoleId, UserName, PasswordHash, MustChangePassword, CreatedAtUtc)
+    SELECT r.Id, t.UserName, t.PasswordHash, 0, SYSUTCDATETIME()
     FROM @TestAccounts t
     INNER JOIN dbo.Roles r ON r.Name = t.RoleName
     WHERE NOT EXISTS (SELECT 1 FROM dbo.Users u WHERE u.RoleId = r.Id);

@@ -81,6 +81,7 @@ public class UserService : IUserService
             UserName = dto.UserName.Trim(),
             RoleId = dto.RoleId,
             PasswordHash = hashedPassword,
+            MustChangePassword = true,
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -103,10 +104,12 @@ public class UserService : IUserService
             throw new InvalidOperationException("El nombre de usuario ya está siendo utilizado por otra cuenta.");
 
         var passwordHash = existingUser.PasswordHash;
+        var mustChangePassword = existingUser.MustChangePassword;
 
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
         {
             passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            mustChangePassword = true;
         }
 
         // Conservar el rol de la entidad seguida por EF hasta validar el último Dueño.
@@ -115,7 +118,8 @@ public class UserService : IUserService
             Id = existingUser.Id,
             UserName = dto.UserName.Trim(),
             RoleId = dto.RoleId,
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            MustChangePassword = mustChangePassword
         };
 
         await _userRepository.UpdateAsync(proposedUser);

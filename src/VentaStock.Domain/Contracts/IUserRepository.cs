@@ -11,5 +11,6 @@ public interface IUserRepository
     Task<bool> ExistsUsernameAsync(string username, int? excludeId = null);
     Task CreateAsync(User user);
     Task UpdateAsync(User user);
+    Task<bool> CompleteTemporaryPasswordChangeAsync(int userId, string passwordHash);
     Task DeleteAsync(int userId);
 }

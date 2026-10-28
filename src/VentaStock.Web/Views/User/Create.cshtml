@@ -36,7 +36,10 @@
                                 <label asp-for="Password" class="form-label"></label>
                                 <div class="input-group">
                                     <input asp-for="Password" type="password" class="form-control" autocomplete="off" />
-                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="Password" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="Password" aria-pressed="false" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                        <svg data-password-icon="show" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                                        <svg data-password-icon="hide" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /><path d="m3 3 18 18" /></svg>
+                                    </button>
                                 </div>
                                 <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
@@ -45,11 +48,16 @@
                                 <label asp-for="ConfirmPassword" class="form-label"></label>
                                 <div class="input-group">
                                     <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="off" />
-                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="ConfirmPassword" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="ConfirmPassword" aria-pressed="false" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                        <svg data-password-icon="show" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                                        <svg data-password-icon="hide" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /><path d="m3 3 18 18" /></svg>
+                                    </button>
                                 </div>
                                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                             </div>
                         </div>
+
+                        <p class="form-text">Esta contraseña es temporal. La persona tendrá que elegir una propia al ingresar por primera vez.</p>
 
                         <div class="d-flex justify-content-between mt-4">
                             <a asp-action="Index" class="btn btn-secondary">Cancelar</a>

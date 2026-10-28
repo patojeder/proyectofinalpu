@@ -102,6 +102,7 @@ public class UserRepository : IUserRepository
 
             trackedUser.UserName = user.UserName;
             trackedUser.RoleId = user.RoleId;
+            trackedUser.MustChangePassword = user.MustChangePassword;
 
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
@@ -116,6 +117,17 @@ public class UserRepository : IUserRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<bool> CompleteTemporaryPasswordChangeAsync(int userId, string passwordHash)
+    {
+        var updatedRows = await _context.Users
+            .Where(user => user.Id == userId && user.MustChangePassword)
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(user => user.PasswordHash, passwordHash)
+                .SetProperty(user => user.MustChangePassword, false));
+
+        return updatedRows == 1;
     }
 
     public async Task DeleteAsync(int userId)

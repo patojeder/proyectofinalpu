@@ -53,6 +53,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseMiddleware<TemporaryPasswordChangeMiddleware>();
 app.UseAuthorization();
 
 app.MapControllerRoute(

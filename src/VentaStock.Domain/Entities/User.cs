@@ -13,6 +13,8 @@ public partial class User
 
     public string PasswordHash { get; set; } = null!;
 
+    public bool MustChangePassword { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
 
     public virtual Role Role { get; set; } = null!;

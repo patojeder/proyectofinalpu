@@ -35,6 +35,7 @@ BEGIN TRY
         RoleId INT NOT NULL,
         UserName NVARCHAR(50) NOT NULL CONSTRAINT UQ_Users_UserName UNIQUE,
         PasswordHash NVARCHAR(255) NOT NULL,
+        MustChangePassword BIT NOT NULL CONSTRAINT DF_Users_MustChangePassword DEFAULT (0),
         CreatedAtUtc DATETIME2 NOT NULL CONSTRAINT DF_Users_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
         CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id)
     );
