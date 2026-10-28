@@ -8,7 +8,7 @@
                 <div class="card-body p-4">
                     <h3 class="fw-bold mb-4">Editar producto</h3>
                     
-                    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                    <form autocomplete="off" asp-action="Edit" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
                         <partial name="_Fields" model="Model" />

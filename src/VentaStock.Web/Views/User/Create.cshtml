@@ -12,7 +12,7 @@
                     <h4 class="mb-0">Crear Nuevo Usuario</h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form autocomplete="off" asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
 
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
@@ -34,13 +34,13 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" class="form-control" />
+                                <input asp-for="Password" class="form-control" autocomplete="off" />
                                 <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" class="form-control" />
+                                <input asp-for="ConfirmPassword" class="form-control" autocomplete="off" />
                                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                             </div>
                         </div>

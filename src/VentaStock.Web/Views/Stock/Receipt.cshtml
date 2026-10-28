@@ -9,7 +9,7 @@
                     <h3 class="fw-bold mb-3">Registrar ingreso</h3>
                     <p class="text-muted">La cantidad ingresada se suma a las existencias actuales, incluso cuando sean negativas.</p>
                     <partial name="_Product" model="Model.Product" />
-                    <form asp-action="Receipt" asp-route-id="@Model.ProductId" method="post">
+                    <form autocomplete="off" asp-action="Receipt" asp-route-id="@Model.ProductId" method="post">
                         @Html.AntiForgeryToken()
                         <input asp-for="ProductId" type="hidden" />
                         <input asp-for="OperationId" type="hidden" />

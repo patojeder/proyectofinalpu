@@ -7,7 +7,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h3 class="fw-bold mb-4">Nuevo cliente</h3>
-                    <form asp-action="Create" method="post">
+                    <form autocomplete="off" asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         
                         <partial name="_Fields" model="Model" />

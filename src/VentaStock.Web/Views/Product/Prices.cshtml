@@ -8,7 +8,7 @@
                 <div class="card-body p-4">
                     <h3 class="fw-bold mb-3">Editar precios</h3>
                     <p class="text-muted">Producto: <strong>@Model.Name</strong>. Indicá ambos precios o dejá ambos vacíos para quitar la asignación. El precio de venta debe superar el costo.</p>
-                    <form asp-action="Prices" asp-route-id="@Model.Id" method="post">
+                    <form autocomplete="off" asp-action="Prices" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
                         <input asp-for="Id" type="hidden" />
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>

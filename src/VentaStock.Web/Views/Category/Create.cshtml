@@ -12,7 +12,7 @@
                     <h3 class="fw-bold mb-3">Nueva Categoría</h3>
                     <p class="text-muted mb-4">Complete los datos para agregar una clasificación al inventario.</p>
 
-                    <form asp-action="Create" method="post">
+                    <form autocomplete="off" asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
 
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
