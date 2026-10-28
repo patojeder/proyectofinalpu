@@ -46,12 +46,6 @@ public class UserRepository : IUserRepository
             .AnyAsync(u => u.UserName == username && (!excludeId.HasValue || u.Id != excludeId.Value));
     }
 
-    public async Task<bool> ExistsEmailAsync(string mail, int? excludeId = null)
-    {
-        return await _context.Users
-            .AnyAsync(u => u.Email == mail && (!excludeId.HasValue || u.Id != excludeId.Value));
-    }
-
     public async Task CreateAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -92,7 +86,6 @@ public class UserRepository : IUserRepository
                 throw new InvalidOperationException(LastOwnerMessage);
 
             trackedUser.UserName = user.UserName;
-            trackedUser.Email = user.Email;
             trackedUser.RoleId = user.RoleId;
 
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))

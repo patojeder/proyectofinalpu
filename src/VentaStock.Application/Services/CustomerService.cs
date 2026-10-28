@@ -24,7 +24,7 @@ public class CustomerService(ICustomerRepository repository, ICurrentUser curren
             {
                 Id = c.Id, FirstName = c.FirstName, LastName = c.LastName, DocumentType = c.DocumentType,
                 DocumentNumber = c.DocumentNumber, CustomerType = c.CustomerType,
-                Address = c.Address, Phone = c.Phone, Email = c.Email
+                Address = c.Address, Phone = c.Phone
             }).ToList()
         };
     }
@@ -38,7 +38,7 @@ public class CustomerService(ICustomerRepository repository, ICurrentUser curren
             Id = customer.Id, FirstName = customer.FirstName, LastName = customer.LastName,
             DocumentType = customer.DocumentType, DocumentNumber = customer.DocumentNumber,
             CustomerType = customer.CustomerType, Address = customer.Address, Phone = customer.Phone,
-            Email = customer.Email, Version = Convert.ToBase64String(customer.Version)
+            Version = Convert.ToBase64String(customer.Version)
         };
     }
 
@@ -85,15 +85,12 @@ public class CustomerService(ICustomerRepository repository, ICurrentUser curren
             throw new InvalidOperationException("Ya existe un cliente con ese documento.");
         var address = NormalizeOptional(dto.Address, 250);
         var phone = NormalizeOptional(dto.Phone, 50);
-        var email = NormalizeOptional(dto.Email, 150);
         if (phone is not null && !new PhoneAttribute().IsValid(phone))
             throw new InvalidOperationException("El teléfono no tiene un formato válido.");
-        if (email is not null && !new EmailAddressAttribute().IsValid(email))
-            throw new InvalidOperationException("El correo electrónico no tiene un formato válido.");
         customer.FirstName = firstName; customer.LastName = lastName;
         customer.DocumentType = dto.DocumentType; customer.DocumentNumber = number;
         customer.CustomerType = dto.CustomerType; customer.Address = address;
-        customer.Phone = phone; customer.Email = email;
+        customer.Phone = phone;
     }
 
     private static string? NormalizeOptional(string? value, int maxLength)

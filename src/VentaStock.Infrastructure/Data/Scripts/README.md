@@ -21,7 +21,7 @@ Ambos scripts seleccionan explícitamente `VentaStockDb`. Las tablas y columnas 
 
 Son los roles necesarios para las funciones actuales. Los demás roles predefinidos del proyecto se incorporarán al implementar sus módulos.
 
-Las tablas, columnas, clases y constantes usan nombres en inglés. Los nombres almacenados de los roles están en español y se muestran directamente en la interfaz.
+Las tablas, columnas, clases y constantes usan nombres en inglés. Los nombres almacenados de los roles están en español y se muestran directamente en la interfaz. Las cuentas de usuario se identifican por nombre de usuario y contraseña; el esquema no almacena correos. Los datos de contacto del cliente se limitan a dirección y teléfono.
 
 Los identificadores de permisos usan `Modulo.Operacion` en inglés y PascalCase. Deben coincidir con las constantes de `VentaStock.Domain/Security/Permissions`. Las descripciones visibles están en español. Los roles personalizados reciben permisos explícitamente.
 
@@ -39,7 +39,7 @@ Saldo y movimiento se guardan en una sola transacción con bloqueo de actualizac
 
 Todavía no hay tablas de ventas. Al incorporarlas, sus claves foráneas también deberán preservar el historial y el descuento de stock deberá integrarse en la transacción de venta.
 
-`Customers` guarda nombre, apellido, tipo y número de documento, tipo de cliente y contacto opcional. Solo el documento es único; otros datos pueden repetirse. El DNI se normaliza a 8 dígitos y los CUIL/CUIT a 11 sin guiones. SQL valida tipos, longitudes, caracteres y la exigencia de CUIL/CUIT para Cuenta corriente; la aplicación valida también prefijo y dígito verificador. `Version` es ROWVERSION y se utiliza para evitar sobrescrituras concurrentes en edición. No se agrega columna Activo.
+`Customers` guarda nombre, apellido, tipo y número de documento, tipo de cliente, dirección y teléfono opcionales. Solo el documento es único; los datos de contacto pueden repetirse. El DNI se normaliza a 8 dígitos y los CUIL/CUIT a 11 sin guiones. SQL valida tipos, longitudes, caracteres y la exigencia de CUIL/CUIT para Cuenta corriente; la aplicación valida también prefijo y dígito verificador. `Version` es ROWVERSION y se utiliza para evitar sobrescrituras concurrentes en edición. No se agrega columna Activo.
 
 Los saldos y límites no pertenecen a la ficha del cliente. La integración de T15 deberá impedir volver a Contado con deuda o crédito pendiente y conservar los movimientos históricos. No hay datos financieros en esta tabla.
 
@@ -59,11 +59,12 @@ No ejecutar el script de creación sobre tablas existentes. Seleccionar la base 
 6. `Updates/006_CreateProducts.sql`: crea productos, sus categorías y su stock; se detiene si ya existen esas tablas.
 7. `Updates/007_CreateStockMovements.sql`: crea el historial; conserva saldos existentes distintos de 0 como movimientos `OpeningBalance` del actor Sistema. Se detiene si la tabla ya existe.
 8. `Updates/008_CreateCustomers.sql`: crea clientes con documento único y versión de concurrencia. No crea cuentas corrientes financieras ni saldos. Se detiene si la tabla ya existe.
-9. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
+9. `Updates/009_RemoveEmailColumns.sql`: elimina las columnas de correo de `Users` y `Customers`, junto con sus restricciones o índices si existieran. Conserva las cuentas y los clientes, excepto esos datos de correo.
+10. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
 
-Para una base que ya tiene productos, stock e historial, aplicar únicamente el paso 8 y después el 9. Si todavía no tiene productos o historial, aplicar antes los pasos 6 y 7 que correspondan. No repetir los pasos 6, 7 u 8 si sus tablas ya existen. Las bases nuevas creadas con el esquema actual ya incluyen estas tablas y solo necesitan el seed.
+Para una base que ya tiene productos, stock, historial y clientes, aplicar los pasos 9 y 10. Si todavía no tiene la tabla de clientes, aplicar primero el paso 8. Si todavía no tiene productos o historial, aplicar antes los pasos 6 y 7 que correspondan. No repetir los pasos 6, 7 u 8 si sus tablas ya existen. Las bases nuevas creadas con el esquema actual ya incluyen estas tablas y no tienen columnas de correo; solo necesitan el seed.
 
-Los pasos 1 y 2 se aplican solo si la base todavía tiene columnas o permisos antiguos. Los pasos 3 y 4 son para la base anterior en español; no ejecutarlos sobre una inicialización nueva con `001_CreateSchema.sql`. El paso 5 se aplica a bases que tengan los nombres de roles anteriores en inglés.
+Los pasos 1 y 2 se aplican solo si la base todavía tiene columnas o permisos antiguos. Los pasos 3 y 4 son para la base anterior en español; no ejecutarlos sobre una inicialización nueva con `001_CreateSchema.sql`. El paso 5 se aplica a bases que tengan los nombres de roles anteriores en inglés. El paso 9 puede ejecutarse luego de crear `Users` y `Customers`; si el esquema ya no tiene esas columnas, no hace cambios.
 
 Cerrar sesión y volver a ingresar después de normalizar permisos o renombrar roles, porque las cookies existentes conservan sus claims anteriores.
 

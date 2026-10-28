@@ -19,7 +19,6 @@ BEGIN TRY
         CustomerType VARCHAR(10) NOT NULL,
         Address NVARCHAR(250) NULL,
         Phone NVARCHAR(50) NULL,
-        Email NVARCHAR(150) NULL,
         Version ROWVERSION NOT NULL,
         CONSTRAINT CK_Customers_FirstName CHECK (LEN(LTRIM(RTRIM(FirstName))) > 0),
         CONSTRAINT CK_Customers_LastName CHECK (LEN(LTRIM(RTRIM(LastName))) > 0),

@@ -38,11 +38,6 @@ public class CreateCustomerDto : IValidatableObject
     [Display(Name = "Teléfono")]
     public string? Phone { get; set; }
 
-    [StringLength(150, ErrorMessage = "El correo admite hasta 150 caracteres.")]
-    [EmailAddress(ErrorMessage = "El correo electrónico no tiene un formato válido.")]
-    [Display(Name = "Correo electrónico")]
-    public string? Email { get; set; }
-
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (!CustomerDocumentValidator.TryNormalize(DocumentType, DocumentNumber, out _, out var error))

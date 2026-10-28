@@ -25,12 +25,6 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" type="email" />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-3">
                             <label asp-for="RoleId" class="form-label"></label>
                             <select asp-for="RoleId" asp-items="ViewBag.Roles" class="form-select">
                                 <option value="">-- Seleccionar Rol --</option>

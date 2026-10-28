@@ -51,7 +51,6 @@ public class AuthController : Controller
         {
             new Claim(ClaimTypes.NameIdentifier, usuarioSesion.Id.ToString()),
             new Claim(ClaimTypes.Name, usuarioSesion.UserName),
-            new Claim(ClaimTypes.Email, usuarioSesion.Email),
             new Claim(ClaimTypes.Role, usuarioSesion.Role)
         };
 

@@ -35,7 +35,6 @@ BEGIN TRY
         RoleId INT NOT NULL,
         UserName NVARCHAR(50) NOT NULL CONSTRAINT UQ_Users_UserName UNIQUE,
         PasswordHash NVARCHAR(255) NOT NULL,
-        Email NVARCHAR(100) NOT NULL,
         CreatedAtUtc DATETIME2 NOT NULL CONSTRAINT DF_Users_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
         CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id)
     );
@@ -139,7 +138,6 @@ BEGIN TRY
         CustomerType VARCHAR(10) NOT NULL,
         Address NVARCHAR(250) NULL,
         Phone NVARCHAR(50) NULL,
-        Email NVARCHAR(150) NULL,
         Version ROWVERSION NOT NULL,
         CONSTRAINT CK_Customers_FirstName CHECK (LEN(LTRIM(RTRIM(FirstName))) > 0),
         CONSTRAINT CK_Customers_LastName CHECK (LEN(LTRIM(RTRIM(LastName))) > 0),

@@ -31,7 +31,7 @@ public class CustomerController(ICustomerService customerService, ICurrentUser c
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = CustomerPermissions.Create)]
-    public async Task<IActionResult> Create([Bind("FirstName,LastName,DocumentType,DocumentNumber,CustomerType,Address,Phone,Email")] CreateCustomerDto dto)
+    public async Task<IActionResult> Create([Bind("FirstName,LastName,DocumentType,DocumentNumber,CustomerType,Address,Phone")] CreateCustomerDto dto)
     {
         if (dto.CustomerType == CustomerTypes.OnAccount && !currentUser.HasPermission(CustomerPermissions.CreateOnAccount))
             return Forbid();
@@ -63,7 +63,7 @@ public class CustomerController(ICustomerService customerService, ICurrentUser c
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = CustomerPermissions.Update)]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Version,FirstName,LastName,DocumentType,DocumentNumber,CustomerType,Address,Phone,Email")] EditCustomerDto dto)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Version,FirstName,LastName,DocumentType,DocumentNumber,CustomerType,Address,Phone")] EditCustomerDto dto)
     {
         if (id != dto.Id) return BadRequest();
         RejectFinancialFields();

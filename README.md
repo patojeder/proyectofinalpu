@@ -68,7 +68,7 @@ Compras, proveedores y descuentos de stock por ventas quedan para tareas posteri
 
 ## Clientes
 
-El módulo incluye listado, búsqueda, alta y modificación. Nombre y apellido son obligatorios; dirección, teléfono y correo son opcionales y pueden repetirse. No hay eliminación ni campos de saldo inicial o límite de deuda en esta entrega.
+El módulo incluye listado, búsqueda, alta y modificación. Nombre y apellido son obligatorios; dirección y teléfono son opcionales y pueden repetirse. No se almacenan correos. No hay eliminación ni campos de saldo inicial o límite de deuda en esta entrega.
 
 - Documentos: DNI, CUIL y CUIT. El número es único incluso si se selecciona otro tipo de documento: un CUIL y un CUIT con el mismo número no generan dos clientes.
 - DNI: hasta 8 dígitos, distinto de cero. Se aceptan puntos y espacios; se guarda con 8 dígitos, completando ceros a la izquierda para impedir duplicados por formato.
@@ -89,7 +89,7 @@ La validación es local: no consulta padrones ni confirma titularidad o inscripc
 ### Verificación manual pendiente de Clientes
 
 1. Cerrar sesión y volver a ingresar. Comprobar que el Vendedor consulta ambos tipos, crea solo Contado y no puede editar ni crear Cuenta corriente alterando la solicitud. Dueño/Gestor de Clientes deben poder crear ambos tipos y editar.
-2. Crear con DNI y datos de contacto vacíos. Rechazar nombre o apellido vacíos, DNI cero y documentos repetidos. Repetir nombre, apellido, teléfono o correo en otros clientes debe estar permitido.
+2. Crear con DNI y datos de contacto vacíos. Rechazar nombre o apellido vacíos, DNI cero y documentos repetidos. Repetir nombre, apellido o teléfono en otros clientes debe estar permitido.
 3. Probar CUIL/CUIT con y sin guiones: deben representar el mismo documento. Rechazar letras, longitud incorrecta, prefijo inválido y dígito verificador incorrecto, tanto en alta como edición.
 4. Rechazar Cuenta corriente con DNI. Permitirla con CUIL/CUIT válido, también al cambiar desde Contado. Mientras el cliente sea Cuenta corriente, impedir cambiar su documento a DNI.
 5. Buscar por nombre completo, apellido, documento con separadores y teléfono. Revisar formatos de contacto cuando se proporcionan.
