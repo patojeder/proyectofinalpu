@@ -1,12 +1,14 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.WebUtilities;
 using VentaStock.Application.Contracts;
 
 namespace VentaStock.Web.Security;
 
 public class UserCookieAuthenticationEvents : CookieAuthenticationEvents
 {
+    private const string SessionInvalidatedItemKey = "VentaStock.SessionInvalidated";
     private readonly IAuthService _authService;
 
     public UserCookieAuthenticationEvents(IAuthService authService) => _authService = authService;
@@ -35,8 +37,19 @@ public class UserCookieAuthenticationEvents : CookieAuthenticationEvents
         context.ShouldRenew = true;
     }
 
+    public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+    {
+        if (!context.HttpContext.Items.ContainsKey(SessionInvalidatedItemKey))
+            return base.RedirectToLogin(context);
+
+        var loginUrl = QueryHelpers.AddQueryString(context.RedirectUri, "sessionStatus", "invalidated");
+        context.Response.Redirect(loginUrl);
+        return Task.CompletedTask;
+    }
+
     private static async Task RejectAsync(CookieValidatePrincipalContext context)
     {
+        context.HttpContext.Items[SessionInvalidatedItemKey] = true;
         context.RejectPrincipal();
         await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }

@@ -18,7 +18,7 @@ public class AuthController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null, string? sessionStatus = null)
     {
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
@@ -26,6 +26,10 @@ public class AuthController : Controller
         }
 
         ViewData["ReturnUrl"] = returnUrl;
+        if (sessionStatus == "invalidated")
+        {
+            ViewData["SessionMessage"] = "La cuenta asociada a esta sesión ya no está disponible. Si necesitás acceso, contactá al administrador.";
+        }
         return View();
     }
 
