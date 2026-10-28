@@ -34,13 +34,19 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" class="form-control" autocomplete="off" />
+                                <div class="input-group">
+                                    <input asp-for="Password" type="password" class="form-control" autocomplete="off" />
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="Password" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                                </div>
                                 <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" class="form-control" autocomplete="off" />
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="off" />
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="ConfirmPassword" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                                </div>
                                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                             </div>
                         </div>

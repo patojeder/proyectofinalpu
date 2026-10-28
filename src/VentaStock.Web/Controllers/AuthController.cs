@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using VentaStock.Application.Contracts;
 using VentaStock.Application.DTOs;
+using VentaStock.Web.Security;
 
 namespace VentaStock.Web.Controllers;
 

@@ -27,7 +27,10 @@
 
                     <div class="mb-3">
                         <label asp-for="Password" class="form-label fw-semibold">Contraseña</label>
-                        <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" autocomplete="off" />
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" autocomplete="off" />
+                            <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="Password" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                        </div>
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
