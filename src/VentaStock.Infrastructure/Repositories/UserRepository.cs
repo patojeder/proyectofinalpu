@@ -25,6 +25,15 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.UserName == username);
     }
 
+    public async Task<User?> GetSessionByIdAsync(int userId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Role)
+                .ThenInclude(r => r.Permissions)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
     public async Task<User?> GetByIdAsync(int userId)
     {
         return await _context.Users

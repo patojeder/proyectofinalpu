@@ -47,19 +47,6 @@ public class AuthController : Controller
             return View(request);
         }
 
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuarioSesion.Id.ToString()),
-            new Claim(ClaimTypes.Name, usuarioSesion.UserName),
-            new Claim(ClaimTypes.Role, usuarioSesion.Role)
-        };
-
-        foreach (var permiso in usuarioSesion.Permissions)
-        {
-            claims.Add(new Claim("Permission", permiso));
-        }
-
-        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var authProperties = new AuthenticationProperties
         {
             IsPersistent = true, 
@@ -68,7 +55,7 @@ public class AuthController : Controller
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(claimsIdentity),
+            UserClaimsPrincipalFactory.Create(usuarioSesion),
             authProperties);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))

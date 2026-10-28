@@ -34,4 +34,10 @@ public class AuthService : IAuthService
 
         return _mapper.Map<UserSessionDto>(usuario);
     }
+
+    public async Task<UserSessionDto?> GetUserSessionAsync(int userId)
+    {
+        var usuario = await _userRepository.GetSessionByIdAsync(userId);
+        return usuario == null ? null : _mapper.Map<UserSessionDto>(usuario);
+    }
 }
