@@ -23,12 +23,12 @@
                                 <div class="row">
                                     <div class="col-sm-6 mb-3">
                                         <label asp-for="CostPrice" class="form-label"></label>
-                                        <input asp-for="CostPrice" class="form-control" type="number" min="0" step="0.01" />
+                                        <input asp-for="CostPrice" class="form-control" type="number" min="0" step="0.01" data-no-exponent />
                                         <span asp-validation-for="CostPrice" class="text-danger"></span>
                                     </div>
                                     <div class="col-sm-6 mb-3">
                                         <label asp-for="SalePrice" class="form-label"></label>
-                                        <input asp-for="SalePrice" class="form-control" type="number" min="0" step="0.01" />
+                                        <input asp-for="SalePrice" class="form-control" type="number" min="0" step="0.01" data-no-exponent />
                                         <span asp-validation-for="SalePrice" class="text-danger"></span>
                                     </div>
                                 </div>
