@@ -11,10 +11,10 @@ public class ProductService(
     ICategoryRepository categoryRepository,
     ICurrentUser currentUser) : IProductService
 {
-    public async Task<IEnumerable<ProductDto>> GetAllAsync()
+    public async Task<IEnumerable<ProductDto>> GetAllAsync(string? searchTerm = null)
     {
         RequirePermission(ProductPermissions.Read);
-        return (await productRepository.GetAllAsync()).Select(ToDto).ToList();
+        return (await productRepository.GetAllAsync(searchTerm)).Select(ToDto).ToList();
     }
 
     public async Task<EditProductDto?> GetForEditByIdAsync(int id)

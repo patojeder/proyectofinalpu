@@ -20,10 +20,10 @@ public class CategoryService : ICategoryService
         _currentUser = currentUser;
     }
 
-    public async Task<IEnumerable<CategoryDto>> GetAllAsync()
+    public async Task<IEnumerable<CategoryDto>> GetAllAsync(string? searchTerm = null)
     {
         RequirePermission(CategoryPermissions.Read);
-        var categories = await _categoryRepository.GetAllAsync();
+        var categories = await _categoryRepository.GetAllAsync(searchTerm);
         return _mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 

@@ -4,7 +4,7 @@ namespace VentaStock.Application.Contracts;
 
 public interface IProductService
 {
-    Task<IEnumerable<ProductDto>> GetAllAsync();
+    Task<IEnumerable<ProductDto>> GetAllAsync(string? searchTerm = null);
     Task<EditProductDto?> GetForEditByIdAsync(int id);
     Task<ProductDto?> GetForDeleteByIdAsync(int id);
     Task<ProductPricesDto?> GetPricesByIdAsync(int id);

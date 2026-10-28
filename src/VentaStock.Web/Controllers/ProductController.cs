@@ -14,7 +14,12 @@ public class ProductController(IProductService productService, ICurrentUser curr
 {
     [HttpGet]
     [Authorize(Policy = ProductPermissions.Read)]
-    public async Task<IActionResult> Index() => View(await productService.GetAllAsync());
+    public async Task<IActionResult> Index(string? search)
+    {
+        var searchTerm = search?.Trim();
+        ViewData["SearchTerm"] = searchTerm;
+        return View(await productService.GetAllAsync(searchTerm));
+    }
 
     [HttpGet]
     [Authorize(Policy = ProductPermissions.Create)]

@@ -37,10 +37,10 @@ public class UserService : IUserService
         });
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllAsync()
+    public async Task<IEnumerable<UserDto>> GetAllAsync(string? searchTerm = null)
     {
         RequirePermission(UserPermissions.Read);
-        var users = await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllAsync(searchTerm);
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 

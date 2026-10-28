@@ -8,11 +8,21 @@ namespace VentaStock.Infrastructure.Repositories;
 
 public class ServiceRepository(VentaStockDbContext context) : IServiceRepository
 {
-    public async Task<IEnumerable<Service>> GetAllAsync() => await context.Services
-        .Include(s => s.Categories)
-        .AsNoTracking()
-        .OrderBy(s => s.Name)
-        .ToListAsync();
+    public async Task<IEnumerable<Service>> GetAllAsync(string? searchTerm = null)
+    {
+        IQueryable<Service> query = context.Services
+            .Include(s => s.Categories)
+            .AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(s => s.Name.Contains(term)
+                || (s.Description != null && s.Description.Contains(term))
+                || s.Categories.Any(c => c.Name.Contains(term)));
+        }
+
+        return await query.OrderBy(s => s.Name).ToListAsync();
+    }
 
     public Task<Service?> GetByIdAsync(int id) => context.Services
         .Include(s => s.Categories)

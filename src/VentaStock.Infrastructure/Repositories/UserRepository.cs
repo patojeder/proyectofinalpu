@@ -41,12 +41,18 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync(string? searchTerm = null)
     {
-        return await _context.Users
+        IQueryable<User> query = _context.Users
             .Include(u => u.Role)
-            .AsNoTracking()
-            .ToListAsync();
+            .AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(u => u.UserName.Contains(term) || u.Role.Name.Contains(term));
+        }
+
+        return await query.OrderBy(u => u.UserName).ToListAsync();
     }
 
     public async Task<bool> ExistsUsernameAsync(string username, int? excludeId = null)

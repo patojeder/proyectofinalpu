@@ -23,9 +23,11 @@ public class CategoryController : Controller
 
     [HttpGet]
     [Authorize(Policy = CategoryPermissions.Read)]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search)
     {
-        var categories = await _categoryService.GetAllAsync();
+        var searchTerm = search?.Trim();
+        ViewData["SearchTerm"] = searchTerm;
+        var categories = await _categoryService.GetAllAsync(searchTerm);
         return View(categories);
     }
 

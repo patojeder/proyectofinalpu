@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Gestión de Usuarios";
+    var searchTerm = ViewData["SearchTerm"] as string ?? string.Empty;
 }
 
 <div class="container mt-4">
@@ -30,6 +31,20 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
     }
+
+    <form asp-action="Index" method="get" autocomplete="off" class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+            <label for="search" class="form-label">Buscar por usuario o rol</label>
+            <input type="search" id="search" name="search" value="@searchTerm" class="form-control" maxlength="150" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+            }
+        </div>
+    </form>
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -76,7 +91,7 @@
                     {
                         <tr>
                             <td colspan="5" class="text-center py-4 text-muted">
-                                No se encontraron usuarios registrados.
+                                @(string.IsNullOrEmpty(searchTerm) ? "No hay usuarios registrados." : "No se encontraron usuarios con ese criterio.")
                             </td>
                         </tr>
                     }

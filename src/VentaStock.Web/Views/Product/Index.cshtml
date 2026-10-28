@@ -10,6 +10,7 @@
     var canManagePrices = canReadCost && canReadSale && CurrentUser.HasPermission(ProductPermissions.UpdatePrices);
     var showActions = canUpdate || canDelete || canManagePrices;
     var columnCount = 5 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 2 : 0) + (showActions ? 1 : 0);
+    var searchTerm = ViewData["SearchTerm"] as string ?? string.Empty;
 }
 
 <div class="container py-4">
@@ -34,6 +35,19 @@
     {
         <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
     }
+    <form asp-action="Index" method="get" autocomplete="off" class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+            <label for="search" class="form-label">Buscar por nombre, código, categoría o ubicación</label>
+            <input type="search" id="search" name="search" value="@searchTerm" class="form-control" maxlength="150" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+            }
+        </div>
+    </form>
     <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -53,7 +67,7 @@
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="@columnCount" class="text-center py-4 text-muted">No hay productos registrados.</td></tr>
+                        <tr><td colspan="@columnCount" class="text-center py-4 text-muted">@(string.IsNullOrEmpty(searchTerm) ? "No hay productos registrados." : "No se encontraron productos con ese criterio.")</td></tr>
                     }
                     @foreach (var item in Model)
                     {
