@@ -13,10 +13,10 @@ public class ServiceCatalogService(
     IMapper mapper,
     ICurrentUser currentUser) : IServiceCatalogService
 {
-    public async Task<IEnumerable<ServiceDto>> GetAllAsync()
+    public async Task<IEnumerable<ServiceDto>> GetAllAsync(string? searchTerm = null)
     {
         RequirePermission(ServicePermissions.Read);
-        return mapper.Map<IEnumerable<ServiceDto>>(await serviceRepository.GetAllAsync());
+        return mapper.Map<IEnumerable<ServiceDto>>(await serviceRepository.GetAllAsync(searchTerm));
     }
 
     public async Task<EditServiceDto?> GetForEditByIdAsync(int id)

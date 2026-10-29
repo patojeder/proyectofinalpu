@@ -8,9 +8,25 @@ namespace VentaStock.Infrastructure.Repositories;
 
 public class ProductRepository(VentaStockDbContext context) : IProductRepository
 {
-    public async Task<IEnumerable<Product>> GetAllAsync() => await context.Products
-        .Include(p => p.Categories).Include(p => p.ProductStock)
-        .AsNoTracking().OrderBy(p => p.Name).ToListAsync();
+    public async Task<IEnumerable<Product>> GetAllAsync(string? searchTerm = null)
+    {
+        IQueryable<Product> query = context.Products
+            .Include(p => p.Categories)
+            .Include(p => p.ProductStock)
+            .AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(p => p.Name.Contains(term)
+                || p.Barcode.Contains(term)
+                || (p.Description != null && p.Description.Contains(term))
+                || (p.Sector != null && p.Sector.Contains(term))
+                || (p.Shelf != null && p.Shelf.Contains(term))
+                || p.Categories.Any(c => c.Name.Contains(term)));
+        }
+
+        return await query.OrderBy(p => p.Name).ToListAsync();
+    }
 
     public Task<Product?> GetByIdAsync(int id) => context.Products
         .Include(p => p.Categories).Include(p => p.ProductStock)

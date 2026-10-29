@@ -4,7 +4,7 @@ namespace VentaStock.Application.Contracts;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<CategoryDto>> GetAllAsync();
+    Task<IEnumerable<CategoryDto>> GetAllAsync(string? searchTerm = null);
     Task<CategoryDto?> GetByIdAsync(int idCategoria);
     Task<EditCategoryDto?> GetForEditByIdAsync(int idCategoria);
     Task<DeleteCategoryDto?> GetForDeleteByIdAsync(int idCategoria);

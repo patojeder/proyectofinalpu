@@ -5,11 +5,12 @@ namespace VentaStock.Domain.Contracts;
 public interface IUserRepository
 {
     Task<User?> GetByUserNameAsync(string username);
+    Task<User?> GetSessionByIdAsync(int userId);
     Task<User?> GetByIdAsync(int userId);
-    Task<IEnumerable<User>> GetAllAsync();
+    Task<IEnumerable<User>> GetAllAsync(string? searchTerm = null);
     Task<bool> ExistsUsernameAsync(string username, int? excludeId = null);
-    Task<bool> ExistsEmailAsync(string mail, int? excludeId = null);
     Task CreateAsync(User user);
     Task UpdateAsync(User user);
+    Task<bool> CompleteTemporaryPasswordChangeAsync(int userId, string passwordHash);
     Task DeleteAsync(int userId);
 }

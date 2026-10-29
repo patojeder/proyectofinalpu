@@ -12,7 +12,7 @@
                     <h4 class="mb-0">Editar Usuario</h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                    <form autocomplete="off" asp-action="Edit" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
 
@@ -22,12 +22,6 @@
                             <label asp-for="UserName" class="form-label"></label>
                             <input asp-for="UserName" class="form-control" />
                             <span asp-validation-for="UserName" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" type="email" />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
@@ -42,17 +36,30 @@
                         {
                         <hr class="my-4" />
                         <h6 class="text-muted mb-3">Cambio de Contraseña (dejar vacío para mantener la actual)</h6>
+                        <p class="form-text">Al definir una contraseña nueva, el usuario deberá cambiarla la próxima vez que ingrese.</p>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="NewPassword" class="form-label"></label>
-                                <input asp-for="NewPassword" class="form-control" placeholder="Opcional" />
+                                <div class="input-group">
+                                    <input asp-for="NewPassword" type="password" class="form-control" autocomplete="off" placeholder="Opcional" />
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="NewPassword" aria-pressed="false" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                        <svg data-password-icon="show" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                                        <svg data-password-icon="hide" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /><path d="m3 3 18 18" /></svg>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="NewPassword" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Opcional" />
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="off" placeholder="Opcional" />
+                                    <button type="button" class="btn btn-outline-secondary" data-password-toggle aria-controls="ConfirmPassword" aria-pressed="false" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                        <svg data-password-icon="show" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                                        <svg data-password-icon="hide" class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /><path d="m3 3 18 18" /></svg>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                             </div>
                         </div>

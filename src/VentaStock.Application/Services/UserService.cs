@@ -37,10 +37,10 @@ public class UserService : IUserService
         });
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllAsync()
+    public async Task<IEnumerable<UserDto>> GetAllAsync(string? searchTerm = null)
     {
         RequirePermission(UserPermissions.Read);
-        var users = await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllAsync(searchTerm);
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
@@ -74,17 +74,14 @@ public class UserService : IUserService
         if (await _userRepository.ExistsUsernameAsync(dto.UserName.Trim()))
             throw new InvalidOperationException("El nombre de usuario ingresado ya se encuentra registrado.");
 
-        if (await _userRepository.ExistsEmailAsync(dto.Email.Trim()))
-            throw new InvalidOperationException("El correo electrónico ingresado ya se encuentra registrado.");
-
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
         var user = new User
         {
             UserName = dto.UserName.Trim(),
-            Email = dto.Email.Trim(),
             RoleId = dto.RoleId,
             PasswordHash = hashedPassword,
+            MustChangePassword = true,
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -106,14 +103,13 @@ public class UserService : IUserService
         if (await _userRepository.ExistsUsernameAsync(dto.UserName.Trim(), excludeId: dto.Id))
             throw new InvalidOperationException("El nombre de usuario ya está siendo utilizado por otra cuenta.");
 
-        if (await _userRepository.ExistsEmailAsync(dto.Email.Trim(), excludeId: dto.Id))
-            throw new InvalidOperationException("El correo electrónico ya está siendo utilizado por otra cuenta.");
-
         var passwordHash = existingUser.PasswordHash;
+        var mustChangePassword = existingUser.MustChangePassword;
 
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
         {
             passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            mustChangePassword = true;
         }
 
         // Conservar el rol de la entidad seguida por EF hasta validar el último Dueño.
@@ -121,9 +117,9 @@ public class UserService : IUserService
         {
             Id = existingUser.Id,
             UserName = dto.UserName.Trim(),
-            Email = dto.Email.Trim(),
             RoleId = dto.RoleId,
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            MustChangePassword = mustChangePassword
         };
 
         await _userRepository.UpdateAsync(proposedUser);

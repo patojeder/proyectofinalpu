@@ -15,12 +15,17 @@ public class CategoryRepository : ICategoryRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<IEnumerable<Category>> GetAllAsync(string? searchTerm = null)
     {
-        return await _context.Categories
-            .AsNoTracking()
-            .OrderBy(c => c.Name)
-            .ToListAsync();
+        var query = _context.Categories.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(c => c.Name.Contains(term)
+                || (c.Description != null && c.Description.Contains(term)));
+        }
+
+        return await query.OrderBy(c => c.Name).ToListAsync();
     }
 
     public Task<List<Category>> GetByIdsAsync(IEnumerable<int> ids) => _context.Categories

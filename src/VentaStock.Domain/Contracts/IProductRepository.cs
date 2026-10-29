@@ -4,7 +4,7 @@ namespace VentaStock.Domain.Contracts;
 
 public interface IProductRepository
 {
-    Task<IEnumerable<Product>> GetAllAsync();
+    Task<IEnumerable<Product>> GetAllAsync(string? searchTerm = null);
     Task<Product?> GetByIdAsync(int id);
     Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
     Task<bool> ExistsByBarcodeAsync(string barcode, int? excludeId = null);

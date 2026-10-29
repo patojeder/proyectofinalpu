@@ -5,6 +5,7 @@
     var canUpdate = CurrentUser.HasPermission(ServicePermissions.Update);
     var canDelete = CurrentUser.HasPermission(ServicePermissions.Delete);
     var showActions = canUpdate || canDelete;
+    var searchTerm = ViewData["SearchTerm"] as string ?? string.Empty;
 }
 
 <div class="container py-4">
@@ -37,6 +38,20 @@
         </div>
     }
 
+    <form asp-action="Index" method="get" autocomplete="off" class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+            <label for="search" class="form-label">Buscar por nombre, descripción o categoría</label>
+            <input type="search" id="search" name="search" value="@searchTerm" class="form-control" maxlength="150" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+            }
+        </div>
+    </form>
+
     <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -54,7 +69,7 @@
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="@(showActions ? 4 : 3)" class="text-center py-4 text-muted">No hay servicios registrados.</td></tr>
+                        <tr><td colspan="@(showActions ? 4 : 3)" class="text-center py-4 text-muted">@(string.IsNullOrEmpty(searchTerm) ? "No hay servicios registrados." : "No se encontraron servicios con ese criterio.")</td></tr>
                     }
                     @foreach (var item in Model)
                     {

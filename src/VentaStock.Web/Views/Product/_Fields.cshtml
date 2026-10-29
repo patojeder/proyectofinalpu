@@ -36,7 +36,7 @@
 </div>
 <div class="mb-4">
     <label asp-for="MinimumQuantity" class="form-label fw-semibold"></label>
-    <input asp-for="MinimumQuantity" class="form-control" type="number" min="0" step="1" aria-describedby="minimum-help" />
+    <input asp-for="MinimumQuantity" class="form-control" type="number" min="0" step="1" data-no-exponent aria-describedby="minimum-help" />
     <div id="minimum-help" class="form-text">Si no se indica, se guarda 0. Este valor no modifica las existencias.</div>
     <span asp-validation-for="MinimumQuantity" class="text-danger"></span>
 </div>

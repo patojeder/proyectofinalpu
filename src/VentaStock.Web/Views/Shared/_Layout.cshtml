@@ -75,7 +75,7 @@
                                 <span class="text-muted small">Hola, <strong>@User.Identity.Name</strong></span>
                             </li>
                             <li class="nav-item">
-                                <form asp-controller="Auth" asp-action="Logout" method="post" class="form-inline">
+                                <form autocomplete="off" asp-controller="Auth" asp-action="Logout" method="post" class="form-inline">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
                                 </form>

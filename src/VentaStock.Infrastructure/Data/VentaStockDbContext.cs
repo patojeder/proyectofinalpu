@@ -55,7 +55,6 @@ public partial class VentaStockDbContext : DbContext
             entity.Property(e => e.DocumentType)
                 .HasMaxLength(4)
                 .IsUnicode(false);
-            entity.Property(e => e.Email).HasMaxLength(150);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(50);
@@ -195,7 +194,6 @@ public partial class VentaStockDbContext : DbContext
             entity.HasIndex(e => e.UserName, "UQ_Users_UserName").IsUnique();
 
             entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_Users_CreatedAtUtc");
-            entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.UserName).HasMaxLength(50);
 

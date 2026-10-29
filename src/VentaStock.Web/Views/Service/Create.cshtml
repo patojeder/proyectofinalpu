@@ -11,7 +11,7 @@
                 <div class="card-body p-4">
                     <h3 class="fw-bold mb-3">Nuevo Servicio</h3>
                     <p class="text-muted mb-4">Registrá un servicio del catálogo. El precio se definirá al realizar la venta.</p>
-                    <form asp-action="Create" method="post">
+                    <form autocomplete="off" asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         <partial name="_Fields" model="Model" />
                         <div class="d-flex justify-content-end gap-2">

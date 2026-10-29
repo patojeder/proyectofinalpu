@@ -25,6 +25,15 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.UserName == username);
     }
 
+    public async Task<User?> GetSessionByIdAsync(int userId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Role)
+                .ThenInclude(r => r.Permissions)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
     public async Task<User?> GetByIdAsync(int userId)
     {
         return await _context.Users
@@ -32,24 +41,24 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync(string? searchTerm = null)
     {
-        return await _context.Users
+        IQueryable<User> query = _context.Users
             .Include(u => u.Role)
-            .AsNoTracking()
-            .ToListAsync();
+            .AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(u => u.UserName.Contains(term) || u.Role.Name.Contains(term));
+        }
+
+        return await query.OrderBy(u => u.UserName).ToListAsync();
     }
 
     public async Task<bool> ExistsUsernameAsync(string username, int? excludeId = null)
     {
         return await _context.Users
             .AnyAsync(u => u.UserName == username && (!excludeId.HasValue || u.Id != excludeId.Value));
-    }
-
-    public async Task<bool> ExistsEmailAsync(string mail, int? excludeId = null)
-    {
-        return await _context.Users
-            .AnyAsync(u => u.Email == mail && (!excludeId.HasValue || u.Id != excludeId.Value));
     }
 
     public async Task CreateAsync(User user)
@@ -92,8 +101,8 @@ public class UserRepository : IUserRepository
                 throw new InvalidOperationException(LastOwnerMessage);
 
             trackedUser.UserName = user.UserName;
-            trackedUser.Email = user.Email;
             trackedUser.RoleId = user.RoleId;
+            trackedUser.MustChangePassword = user.MustChangePassword;
 
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
@@ -108,6 +117,17 @@ public class UserRepository : IUserRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<bool> CompleteTemporaryPasswordChangeAsync(int userId, string passwordHash)
+    {
+        var updatedRows = await _context.Users
+            .Where(user => user.Id == userId && user.MustChangePassword)
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(user => user.PasswordHash, passwordHash)
+                .SetProperty(user => user.MustChangePassword, false));
+
+        return updatedRows == 1;
     }
 
     public async Task DeleteAsync(int userId)

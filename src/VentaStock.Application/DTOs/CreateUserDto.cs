@@ -9,12 +9,6 @@ public class CreateUserDto
     [Display(Name = "Nombre de Usuario")]
     public string UserName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
-    [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido.")]
-    [StringLength(100, ErrorMessage = "El correo no puede superar los 100 caracteres.")]
-    [Display(Name = "Correo Electrónico")]
-    public string Email { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "Debe seleccionar un rol.")]
     [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un rol válido.")]
     [Display(Name = "Rol")]
@@ -23,12 +17,12 @@ public class CreateUserDto
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Contraseña")]
+    [Display(Name = "Contraseña temporal")]
     public string Password { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Debe confirmar la contraseña.")]
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Las contraseñas ingresadas no coinciden.")]
-    [Display(Name = "Confirmar Contraseña")]
+    [Display(Name = "Confirmar contraseña temporal")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }

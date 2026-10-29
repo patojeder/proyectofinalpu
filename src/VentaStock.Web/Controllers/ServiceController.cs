@@ -14,7 +14,12 @@ public class ServiceController(IServiceCatalogService serviceCatalogService, ICu
 {
     [HttpGet]
     [Authorize(Policy = ServicePermissions.Read)]
-    public async Task<IActionResult> Index() => View(await serviceCatalogService.GetAllAsync());
+    public async Task<IActionResult> Index(string? search)
+    {
+        var searchTerm = search?.Trim();
+        ViewData["SearchTerm"] = searchTerm;
+        return View(await serviceCatalogService.GetAllAsync(searchTerm));
+    }
 
     [HttpGet]
     [Authorize(Policy = ServicePermissions.Create)]

@@ -10,7 +10,6 @@ public class CustomerDto
     public string CustomerType { get; set; } = string.Empty;
     public string? Address { get; set; }
     public string? Phone { get; set; }
-    public string? Email { get; set; }
 }
 
 public class CustomerIndexDto

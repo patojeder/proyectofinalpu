@@ -22,9 +22,11 @@ public class UserController : Controller
     }
 
     [Authorize(Policy = UserPermissions.Read)]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search)
     {
-        var users = await _userService.GetAllAsync();
+        var searchTerm = search?.Trim();
+        ViewData["SearchTerm"] = searchTerm;
+        var users = await _userService.GetAllAsync(searchTerm);
         return View(users);
     }
 

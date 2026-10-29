@@ -12,10 +12,12 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<UserCookieAuthenticationEvents>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
+        options.EventsType = typeof(UserCookieAuthenticationEvents);
         options.LoginPath = "/Auth/Login";           
         options.LogoutPath = "/Auth/Logout";         
         options.AccessDeniedPath = "/Auth/Denegado"; 
@@ -51,6 +53,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseMiddleware<TemporaryPasswordChangeMiddleware>();
 app.UseAuthorization();
 
 app.MapControllerRoute(

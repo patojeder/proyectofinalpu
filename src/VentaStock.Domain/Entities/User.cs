@@ -13,7 +13,7 @@ public partial class User
 
     public string PasswordHash { get; set; } = null!;
 
-    public string Email { get; set; } = null!;
+    public bool MustChangePassword { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 
