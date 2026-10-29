@@ -9,8 +9,17 @@
 
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div><h2 class="fw-bold mb-1">Stock</h2><p class="text-muted mb-0">Existencias, ingresos, ajustes e historial</p></div>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Volver al inicio</a>
+        <div>
+            <h2 class="fw-bold mb-1">Stock por Sucursal</h2>
+            <p class="text-muted mb-0">Existencias, ubicaciones en depósito, ingresos, ajustes e historial</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Volver al inicio</a>
+            @if (CurrentUser.IsOwner)
+            {
+                <a asp-controller="Branch" asp-action="Index" class="btn btn-outline-primary">Sucursales</a>
+            }
+        </div>
     </div>
     @if (TempData["SuccessMessage"] != null)
     {
@@ -20,57 +29,85 @@
     {
         <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
     }
-    <form autocomplete="off" asp-action="Index" method="get" class="row g-3 align-items-end mb-4">
-        <div class="col-md-6">
-            <label asp-for="Search" class="form-label">Nombre o código de barras</label>
-            <input asp-for="Search" class="form-control" maxlength="150" />
+
+    @if (Model.Branches.Count == 0)
+    {
+        <div class="alert alert-warning" role="alert">
+            No hay sucursales registradas todavía.
+            @if (CurrentUser.IsOwner)
+            {
+                <a asp-controller="Branch" asp-action="Create" class="alert-link">Crear la primera sucursal</a>
+            }
         </div>
-        <div class="col-md-3">
-            <div class="form-check mb-2">
-                <input asp-for="LowStockOnly" class="form-check-input" />
-                <label asp-for="LowStockOnly" class="form-check-label">Solo en mínimo o por debajo</label>
+    }
+    else
+    {
+        <form autocomplete="off" asp-action="Index" method="get" class="row g-3 align-items-end mb-4">
+            <div class="col-md-3">
+                <label for="branchId" class="form-label">Sucursal</label>
+                <select id="branchId" name="branchId" class="form-select" onchange="this.form.submit()">
+                    @foreach (var branch in Model.Branches)
+                    {
+                        <option value="@branch.Id" selected="@(Model.BranchId == branch.Id)">@branch.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Search" class="form-label">Nombre, código o ubicación</label>
+                <input asp-for="Search" class="form-control" maxlength="150" />
+            </div>
+            <div class="col-md-3">
+                <div class="form-check mb-2">
+                    <input asp-for="LowStockOnly" class="form-check-input" />
+                    <label asp-for="LowStockOnly" class="form-check-label">Solo en mínimo o por debajo</label>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
+
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light"><tr>
+                        <th>Producto</th><th>Código de barras</th><th>Ubicación (Depósito)</th><th>Existencias</th><th>Mínimo</th><th>Estado</th>
+                        @if (showActions) { <th class="text-end">Acciones</th> }
+                    </tr></thead>
+                    <tbody>
+                        @if (Model.Items.Count == 0)
+                        {
+                            <tr><td colspan="@(showActions ? 7 : 6)" class="text-center text-muted py-4">No hay productos que coincidan con la búsqueda en esta sucursal.</td></tr>
+                        }
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.Name</td><td>@item.Barcode</td>
+                                <td><div>Sector: @(item.Sector ?? "—")</div><div>Estante: @(item.Shelf ?? "—")</div></td>
+                                <td class="@(item.Quantity < 0 ? "text-danger fw-bold" : "")">@item.Quantity</td><td>@item.MinimumQuantity</td>
+                                <td>
+                                    @if (item.Quantity < 0) { <span class="badge bg-danger">Negativo</span> }
+                                    else if (item.Quantity <= item.MinimumQuantity) { <span class="badge bg-warning text-dark">En mínimo o por debajo</span> }
+                                    else { <span class="badge bg-success">Disponible</span> }
+                                </td>
+                                @if (showActions)
+                                {
+                                    <td class="text-end text-nowrap">
+                                        @if (canReceive) { <a asp-action="Receipt" asp-route-id="@item.ProductId" asp-route-branchId="@item.BranchId" class="btn btn-sm btn-outline-success">Ingreso</a> }
+                                        @if (canAdjust)
+                                        {
+                                            <a asp-action="Adjust" asp-route-id="@item.ProductId" asp-route-branchId="@item.BranchId" class="btn btn-sm btn-outline-secondary">Ajuste</a>
+                                            <a asp-action="Settings" asp-route-id="@item.ProductId" asp-route-branchId="@item.BranchId" class="btn btn-sm btn-outline-dark">Ubicación / Mín.</a>
+                                        }
+                                        @if (canReadMovements) { <a asp-action="History" asp-route-id="@item.ProductId" asp-route-branchId="@item.BranchId" class="btn btn-sm btn-outline-primary">Historial</a> }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Buscar</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-        </div>
-    </form>
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr>
-                    <th>Producto</th><th>Código de barras</th><th>Ubicación</th><th>Existencias</th><th>Mínimo</th><th>Estado</th>
-                    @if (showActions) { <th class="text-end">Acciones</th> }
-                </tr></thead>
-                <tbody>
-                    @if (Model.Items.Count == 0)
-                    {
-                        <tr><td colspan="@(showActions ? 7 : 6)" class="text-center text-muted py-4">No hay productos que coincidan con la búsqueda.</td></tr>
-                    }
-                    @foreach (var item in Model.Items)
-                    {
-                        <tr>
-                            <td class="fw-bold">@item.Name</td><td>@item.Barcode</td>
-                            <td><div>Sector: @(item.Sector ?? "—")</div><div>Estante: @(item.Shelf ?? "—")</div></td>
-                            <td class="@(item.Quantity < 0 ? "text-danger fw-bold" : "")">@item.Quantity</td><td>@item.MinimumQuantity</td>
-                            <td>
-                                @if (item.Quantity < 0) { <span class="badge bg-danger">Negativo</span> }
-                                else if (item.Quantity <= item.MinimumQuantity) { <span class="badge bg-warning text-dark">En mínimo o por debajo</span> }
-                                else { <span class="badge bg-success">Disponible</span> }
-                            </td>
-                            @if (showActions)
-                            {
-                                <td class="text-end text-nowrap">
-                                    @if (canReceive) { <a asp-action="Receipt" asp-route-id="@item.ProductId" class="btn btn-sm btn-outline-success">Ingreso</a> }
-                                    @if (canAdjust) { <a asp-action="Adjust" asp-route-id="@item.ProductId" class="btn btn-sm btn-outline-secondary">Ajuste</a> }
-                                    @if (canReadMovements) { <a asp-action="History" asp-route-id="@item.ProductId" class="btn btn-sm btn-outline-primary">Historial</a> }
-                                </td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    }
 </div>

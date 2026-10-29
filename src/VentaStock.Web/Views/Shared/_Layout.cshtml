@@ -32,6 +32,13 @@
                             </li>
                         }
 
+                        @if (CurrentUser.IsOwner)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Branch" asp-action="Index">Sucursales</a>
+                            </li>
+                        }
+
                         @if (CurrentUser.HasPermission(CategoryPermissions.Read) || CurrentUser.HasPermission(CategoryPermissions.Create))
                         {
                             <li class="nav-item">

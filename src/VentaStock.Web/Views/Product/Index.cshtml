@@ -9,7 +9,7 @@
     var canReadStock = CurrentUser.HasPermission(StockPermissions.Read);
     var canManagePrices = canReadCost && canReadSale && CurrentUser.HasPermission(ProductPermissions.UpdatePrices);
     var showActions = canUpdate || canDelete || canManagePrices;
-    var columnCount = 5 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 2 : 0) + (showActions ? 1 : 0);
+    var columnCount = 4 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 1 : 0) + (showActions ? 1 : 0);
     var searchTerm = ViewData["SearchTerm"] as string ?? string.Empty;
 }
 
@@ -37,7 +37,7 @@
     }
     <form asp-action="Index" method="get" autocomplete="off" class="row g-2 align-items-end mb-3">
         <div class="col-md-6">
-            <label for="search" class="form-label">Buscar por nombre, código, categoría o ubicación</label>
+            <label for="search" class="form-label">Buscar por nombre, código, descripción o categoría</label>
             <input type="search" id="search" name="search" value="@searchTerm" class="form-control" maxlength="150" />
         </div>
         <div class="col-auto">
@@ -57,10 +57,9 @@
                         <th>Código de barras</th>
                         <th>Descripción</th>
                         <th>Categorías</th>
-                        <th>Ubicación</th>
                         @if (canReadCost) { <th>Costo</th> }
                         @if (canReadSale) { <th>Precio de venta</th> }
-                        @if (canReadStock) { <th>Existencias</th><th>Stock mínimo</th> }
+                        @if (canReadStock) { <th>Existencias totales</th> }
                         @if (showActions) { <th class="text-end">Acciones</th> }
                     </tr>
                 </thead>
@@ -76,16 +75,11 @@
                             <td>@item.Barcode</td>
                             <td>@(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)</td>
                             <td>@string.Join(", ", item.Categories)</td>
-                            <td>
-                                <div>Sector: @(string.IsNullOrWhiteSpace(item.Sector) ? "—" : item.Sector)</div>
-                                <div>Estante: @(string.IsNullOrWhiteSpace(item.Shelf) ? "—" : item.Shelf)</div>
-                            </td>
                             @if (canReadCost) { <td>@(item.CostPrice?.ToString("N2") ?? "Sin asignar")</td> }
                             @if (canReadSale) { <td>@(item.SalePrice?.ToString("N2") ?? "Sin asignar")</td> }
                             @if (canReadStock)
                             {
-                                <td>@(item.Quantity?.ToString() ?? "Sin registro")</td>
-                                <td>@(item.MinimumQuantity?.ToString() ?? "Sin registro")</td>
+                                <td>@(item.Quantity?.ToString() ?? "0")</td>
                             }
                             @if (showActions)
                             {

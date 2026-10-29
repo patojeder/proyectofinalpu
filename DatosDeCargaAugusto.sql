@@ -20,7 +20,9 @@ IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Roles', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Categories', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Services', N'U') IS NULL
+    OR OBJECT_ID(N'dbo.Branches', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Products', N'U') IS NULL
+    OR OBJECT_ID(N'dbo.ProductStocks', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Customers', N'U') IS NULL
     THROW 51001, 'Primero crear y actualizar el esquema de VentaStock.', 1;
 
@@ -83,6 +85,22 @@ BEGIN TRY
     INNER JOIN dbo.Roles r ON r.Name = t.RoleName
     WHERE NOT EXISTS (SELECT 1 FROM dbo.Users u WHERE u.RoleId = r.Id);
 
+    INSERT INTO dbo.Branches (Name, Address, Phone)
+    SELECT v.Name, v.Address, v.Phone
+    FROM (VALUES
+        (N'Casa Central', N'Av. Principal 100', N'3814000100'),
+        (N'Sucursal Norte', N'Av. Aconquija 1500', N'3814000200')) v(Name, Address, Phone)
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.Branches b WHERE b.Name = v.Name);
+
+    UPDATE b
+       SET b.Address = v.Address,
+           b.Phone = v.Phone
+    FROM dbo.Branches b
+    INNER JOIN (VALUES
+        (N'Casa Central', N'Av. Principal 100', N'3814000100'),
+        (N'Sucursal Norte', N'Av. Aconquija 1500', N'3814000200')) v(Name, Address, Phone)
+        ON b.Name = v.Name;
+
     INSERT INTO dbo.Categories (Name, Description)
     SELECT v.Name, v.Description
     FROM (VALUES
@@ -110,23 +128,21 @@ BEGIN TRY
           WHERE sc.ServiceId = s.Id AND sc.CategoryId = c.Id
       );
 
-    INSERT INTO dbo.Products (Name, Description, Barcode, Sector, Shelf, CostPrice, SalePrice)
-    SELECT v.Name, v.Description, v.Barcode, v.Sector, v.Shelf, v.CostPrice, v.SalePrice
+    INSERT INTO dbo.Products (Name, Description, Barcode, CostPrice, SalePrice)
+    SELECT v.Name, v.Description, v.Barcode, v.CostPrice, v.SalePrice
     FROM (VALUES
-        (N'Cuaderno de prueba', N'Producto de prueba para categorías, precios y stock.', N'TEST-CUADERNO-001', N'Prueba', N'A1', CONVERT(DECIMAL(18,2), 1000), CONVERT(DECIMAL(18,2), 1500)),
-        (N'Lapicera azul de prueba', N'Producto de prueba adicional para búsquedas y stock bajo.', N'TEST-LAPICERA-001', N'Prueba', N'A2', CONVERT(DECIMAL(18,2), 500), CONVERT(DECIMAL(18,2), 800))) v(Name, Description, Barcode, Sector, Shelf, CostPrice, SalePrice)
+        (N'Cuaderno de prueba', N'Producto de prueba para categorías, precios y stock.', N'TEST-CUADERNO-001', CONVERT(DECIMAL(18,2), 1000), CONVERT(DECIMAL(18,2), 1500)),
+        (N'Lapicera azul de prueba', N'Producto de prueba adicional para búsquedas y stock bajo.', N'TEST-LAPICERA-001', CONVERT(DECIMAL(18,2), 500), CONVERT(DECIMAL(18,2), 800))) v(Name, Description, Barcode, CostPrice, SalePrice)
     WHERE NOT EXISTS (SELECT 1 FROM dbo.Products p WHERE p.Name = v.Name);
 
     UPDATE p
        SET p.Description = v.Description,
-           p.Sector = v.Sector,
-           p.Shelf = v.Shelf,
            p.CostPrice = v.CostPrice,
            p.SalePrice = v.SalePrice
     FROM dbo.Products p
     INNER JOIN (VALUES
-        (N'Cuaderno de prueba', N'Producto de prueba para categorías, precios y stock.', N'Prueba', N'A1', CONVERT(DECIMAL(18,2), 1000), CONVERT(DECIMAL(18,2), 1500)),
-        (N'Lapicera azul de prueba', N'Producto de prueba adicional para búsquedas y stock bajo.', N'Prueba', N'A2', CONVERT(DECIMAL(18,2), 500), CONVERT(DECIMAL(18,2), 800))) v(Name, Description, Sector, Shelf, CostPrice, SalePrice)
+        (N'Cuaderno de prueba', N'Producto de prueba para categorías, precios y stock.', CONVERT(DECIMAL(18,2), 1000), CONVERT(DECIMAL(18,2), 1500)),
+        (N'Lapicera azul de prueba', N'Producto de prueba adicional para búsquedas y stock bajo.', CONVERT(DECIMAL(18,2), 500), CONVERT(DECIMAL(18,2), 800))) v(Name, Description, CostPrice, SalePrice)
         ON p.Name = v.Name;
 
     INSERT INTO dbo.ProductCategories (ProductId, CategoryId)
@@ -142,22 +158,33 @@ BEGIN TRY
         WHERE pc.ProductId = p.Id AND pc.CategoryId = c.Id
     );
 
-    INSERT INTO dbo.ProductStocks (ProductId, Quantity, MinimumQuantity)
-    SELECT p.Id, 0, v.MinimumQuantity
+    INSERT INTO dbo.ProductStocks (ProductId, BranchId, Quantity, MinimumQuantity, Sector, Shelf)
+    SELECT p.Id, b.Id, 0, v.MinimumQuantity, v.Sector, v.Shelf
     FROM (VALUES
-        (N'Cuaderno de prueba', 3),
-        (N'Lapicera azul de prueba', 5)) v(ProductName, MinimumQuantity)
+        (N'Cuaderno de prueba', N'Casa Central', 3, N'Prueba', N'A1'),
+        (N'Lapicera azul de prueba', N'Casa Central', 5, N'Prueba', N'A2'),
+        (N'Cuaderno de prueba', N'Sucursal Norte', 2, N'Depósito', N'B1'),
+        (N'Lapicera azul de prueba', N'Sucursal Norte', 4, N'Depósito', N'B2')) v(ProductName, BranchName, MinimumQuantity, Sector, Shelf)
     INNER JOIN dbo.Products p ON p.Name = v.ProductName
-    WHERE NOT EXISTS (SELECT 1 FROM dbo.ProductStocks ps WHERE ps.ProductId = p.Id);
+    INNER JOIN dbo.Branches b ON b.Name = v.BranchName
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.ProductStocks ps
+        WHERE ps.ProductId = p.Id AND ps.BranchId = b.Id
+    );
 
     UPDATE ps
-       SET ps.MinimumQuantity = v.MinimumQuantity
+       SET ps.MinimumQuantity = v.MinimumQuantity,
+           ps.Sector = v.Sector,
+           ps.Shelf = v.Shelf
     FROM dbo.ProductStocks ps
     INNER JOIN dbo.Products p ON p.Id = ps.ProductId
+    INNER JOIN dbo.Branches b ON b.Id = ps.BranchId
     INNER JOIN (VALUES
-        (N'Cuaderno de prueba', 3),
-        (N'Lapicera azul de prueba', 5)) v(ProductName, MinimumQuantity)
-        ON p.Name = v.ProductName;
+        (N'Cuaderno de prueba', N'Casa Central', 3, N'Prueba', N'A1'),
+        (N'Lapicera azul de prueba', N'Casa Central', 5, N'Prueba', N'A2'),
+        (N'Cuaderno de prueba', N'Sucursal Norte', 2, N'Depósito', N'B1'),
+        (N'Lapicera azul de prueba', N'Sucursal Norte', 4, N'Depósito', N'B2')) v(ProductName, BranchName, MinimumQuantity, Sector, Shelf)
+        ON p.Name = v.ProductName AND b.Name = v.BranchName;
 
     INSERT INTO dbo.Customers (FirstName, LastName, DocumentType, DocumentNumber, CustomerType, Address, Phone)
     SELECT v.FirstName, v.LastName, v.DocumentType, v.DocumentNumber, v.CustomerType, v.Address, v.Phone
@@ -174,7 +201,9 @@ BEGIN CATCH
 END CATCH;
 
 SELECT N'Usuarios' AS Tipo, COUNT(*) AS Cantidad FROM dbo.Users
+UNION ALL SELECT N'Sucursales', COUNT(*) FROM dbo.Branches
 UNION ALL SELECT N'Categorías', COUNT(*) FROM dbo.Categories
 UNION ALL SELECT N'Servicios', COUNT(*) FROM dbo.Services
 UNION ALL SELECT N'Productos', COUNT(*) FROM dbo.Products
+UNION ALL SELECT N'Stock por Sucursal', COUNT(*) FROM dbo.ProductStocks
 UNION ALL SELECT N'Clientes', COUNT(*) FROM dbo.Customers;

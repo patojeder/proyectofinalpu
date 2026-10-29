@@ -1,12 +1,65 @@
 @model VentaStock.Application.DTOs.StockHistoryDto
-@{ ViewData["Title"] = "Historial de stock"; }
+@using VentaStock.Domain.Constants
+@{
+    ViewData["Title"] = "Historial de stock";
+    var fromDateValue = Model.Filter.FromDate?.ToString("yyyy-MM-dd");
+    var toDateValue = Model.Filter.ToDate?.ToString("yyyy-MM-dd");
+    var hasFilters = Model.Filter.FromDate.HasValue
+        || Model.Filter.ToDate.HasValue
+        || !string.IsNullOrWhiteSpace(Model.Filter.UserName)
+        || !string.IsNullOrWhiteSpace(Model.Filter.MovementType);
+}
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
         <h2 class="fw-bold mb-0">Historial de stock</h2>
-        <a asp-action="Index" class="btn btn-outline-secondary">Volver a stock</a>
+        <a asp-action="Index" asp-route-branchId="@Model.Product.BranchId" class="btn btn-outline-secondary">Volver a stock</a>
     </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
+    }
+
     <partial name="_Product" model="Model.Product" />
+
+    <form autocomplete="off" asp-action="History" asp-route-id="@Model.Product.ProductId" method="get" class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <input type="hidden" name="branchId" value="@Model.Product.BranchId" />
+            <div class="row g-3 align-items-end">
+                <div class="col-sm-6 col-md-2">
+                    <label for="fromDate" class="form-label">Desde (UTC)</label>
+                    <input type="date" id="fromDate" name="fromDate" value="@fromDateValue" class="form-control" />
+                </div>
+                <div class="col-sm-6 col-md-2">
+                    <label for="toDate" class="form-label">Hasta (UTC)</label>
+                    <input type="date" id="toDate" name="toDate" value="@toDateValue" class="form-control" />
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label for="userName" class="form-label">Usuario</label>
+                    <input type="search" id="userName" name="userName" value="@Model.Filter.UserName" class="form-control" maxlength="50" placeholder="Nombre de usuario..." />
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label for="movementType" class="form-label">Tipo de movimiento</label>
+                    <select id="movementType" name="movementType" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="@StockMovementTypes.Receipt" selected="@(Model.Filter.MovementType == StockMovementTypes.Receipt)">Ingreso</option>
+                        <option value="@StockMovementTypes.Adjustment" selected="@(Model.Filter.MovementType == StockMovementTypes.Adjustment)">Ajuste</option>
+                        <option value="@StockMovementTypes.Sale" selected="@(Model.Filter.MovementType == StockMovementTypes.Sale)">Venta</option>
+                        <option value="@StockMovementTypes.OpeningBalance" selected="@(Model.Filter.MovementType == StockMovementTypes.OpeningBalance)">Saldo inicial</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    @if (hasFilters)
+                    {
+                        <a asp-action="History" asp-route-id="@Model.Product.ProductId" asp-route-branchId="@Model.Product.BranchId" class="btn btn-outline-secondary">Limpiar</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+
     <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -16,7 +69,11 @@
                 <tbody>
                     @if (Model.Movements.Count == 0)
                     {
-                        <tr><td colspan="7" class="text-center text-muted py-4">No hay movimientos en esta página.</td></tr>
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                @(hasFilters ? "No se encontraron movimientos con los filtros seleccionados." : "No hay movimientos en esta página.")
+                            </td>
+                        </tr>
                     }
                     @foreach (var movement in Model.Movements)
                     {
@@ -35,12 +92,28 @@
     <nav aria-label="Páginas del historial" class="d-flex align-items-center gap-3 mt-3">
         @if (Model.Page > 1)
         {
-            <a asp-action="History" asp-route-id="@Model.Product.ProductId" asp-route-page="@(Model.Page - 1)" class="btn btn-outline-secondary">Anterior</a>
+            <a asp-action="History"
+               asp-route-id="@Model.Product.ProductId"
+               asp-route-branchId="@Model.Product.BranchId"
+               asp-route-fromDate="@fromDateValue"
+               asp-route-toDate="@toDateValue"
+               asp-route-userName="@Model.Filter.UserName"
+               asp-route-movementType="@Model.Filter.MovementType"
+               asp-route-page="@(Model.Page - 1)"
+               class="btn btn-outline-secondary">Anterior</a>
         }
         <span>Página @Model.Page</span>
         @if (Model.HasNextPage)
         {
-            <a asp-action="History" asp-route-id="@Model.Product.ProductId" asp-route-page="@(Model.Page + 1)" class="btn btn-outline-secondary">Siguiente</a>
+            <a asp-action="History"
+               asp-route-id="@Model.Product.ProductId"
+               asp-route-branchId="@Model.Product.BranchId"
+               asp-route-fromDate="@fromDateValue"
+               asp-route-toDate="@toDateValue"
+               asp-route-userName="@Model.Filter.UserName"
+               asp-route-movementType="@Model.Filter.MovementType"
+               asp-route-page="@(Model.Page + 1)"
+               class="btn btn-outline-secondary">Siguiente</a>
         }
     </nav>
 </div>

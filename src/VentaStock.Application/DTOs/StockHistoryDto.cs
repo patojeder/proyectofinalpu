@@ -1,8 +1,17 @@
 namespace VentaStock.Application.DTOs;
 
+public class StockHistoryFilterDto
+{
+    public DateOnly? FromDate { get; set; }
+    public DateOnly? ToDate { get; set; }
+    public string? UserName { get; set; }
+    public string? MovementType { get; set; }
+}
+
 public class StockHistoryDto
 {
     public StockItemDto Product { get; set; } = new();
+    public StockHistoryFilterDto Filter { get; set; } = new();
     public List<StockMovementDto> Movements { get; set; } = [];
     public int Page { get; set; }
     public bool HasNextPage { get; set; }

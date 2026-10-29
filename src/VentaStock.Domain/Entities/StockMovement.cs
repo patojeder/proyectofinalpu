@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace VentaStock.Domain.Entities;
@@ -8,6 +8,8 @@ public partial class StockMovement
     public long Id { get; set; }
 
     public int ProductId { get; set; }
+
+    public int BranchId { get; set; }
 
     public int? UserId { get; set; }
 
@@ -26,6 +28,8 @@ public partial class StockMovement
     public DateTime CreatedAtUtc { get; set; }
 
     public Guid OperationId { get; set; }
+
+    public virtual Branch Branch { get; set; } = null!;
 
     public virtual Product Product { get; set; } = null!;
 

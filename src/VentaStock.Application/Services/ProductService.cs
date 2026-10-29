@@ -27,10 +27,7 @@ public class ProductService(
             Name = product.Name,
             Description = product.Description,
             Barcode = product.Barcode,
-            Sector = product.Sector,
-            Shelf = product.Shelf,
-            CategoryIds = product.Categories.Select(c => c.Id).ToList(),
-            MinimumQuantity = product.ProductStock?.MinimumQuantity ?? 0
+            CategoryIds = product.Categories.Select(c => c.Id).ToList()
         };
     }
 
@@ -70,7 +67,6 @@ public class ProductService(
         await ApplyFieldsAsync(product, dto);
         product.CostPrice = dto.CostPrice;
         product.SalePrice = dto.SalePrice;
-        product.ProductStock = new ProductStock { Quantity = 0, MinimumQuantity = dto.MinimumQuantity ?? 0 };
         await productRepository.CreateAsync(product);
     }
 
@@ -79,10 +75,7 @@ public class ProductService(
         RequirePermission(ProductPermissions.Update);
         var product = await productRepository.GetByIdAsync(dto.Id)
             ?? throw new InvalidOperationException("El producto ya no existe.");
-        if (product.ProductStock is null)
-            throw new InvalidOperationException("El producto no tiene un registro de stock válido.");
         await ApplyFieldsAsync(product, dto);
-        product.ProductStock.MinimumQuantity = dto.MinimumQuantity ?? 0;
         await productRepository.UpdateAsync(product);
     }
 
@@ -111,13 +104,11 @@ public class ProductService(
         var barcode = string.IsNullOrWhiteSpace(dto.Barcode)
             ? (product.Id == 0 ? "INT-" + Guid.NewGuid().ToString("N").ToUpperInvariant() : product.Barcode)
             : dto.Barcode.Trim();
-        if (barcode.Length > 100 || dto.Sector?.Trim().Length > 50 || dto.Shelf?.Trim().Length > 50)
-            throw new InvalidOperationException("Revisá la longitud del código (100), sector y estante (50 caracteres).");
-        if (dto.MinimumQuantity < 0)
-            throw new InvalidOperationException("El stock mínimo debe ser mayor o igual a 0.");
-        if (await productRepository.ExistsByNameAsync(name, product.Id))
+        if (barcode.Length > 100)
+            throw new InvalidOperationException("El código de barras no puede superar los 100 caracteres.");
+        if (await productRepository.ExistsByNameAsync(name, product.Id == 0 ? null : product.Id))
             throw new InvalidOperationException("Ya existe otro producto con ese nombre.");
-        if (await productRepository.ExistsByBarcodeAsync(barcode, product.Id))
+        if (await productRepository.ExistsByBarcodeAsync(barcode, product.Id == 0 ? null : product.Id))
             throw new InvalidOperationException("Ya existe otro producto con ese código de barras.");
         var ids = (dto.CategoryIds ?? []).Distinct().ToArray();
         if (ids.Length == 0 || ids.Any(id => id <= 0))
@@ -128,8 +119,6 @@ public class ProductService(
         product.Name = name;
         product.Description = dto.Description?.Trim();
         product.Barcode = barcode;
-        product.Sector = dto.Sector?.Trim();
-        product.Shelf = dto.Shelf?.Trim();
         product.Categories = categories;
     }
 
@@ -139,13 +128,12 @@ public class ProductService(
         Name = product.Name,
         Description = product.Description,
         Barcode = product.Barcode,
-        Sector = product.Sector,
-        Shelf = product.Shelf,
         Categories = product.Categories.OrderBy(c => c.Name).Select(c => c.Name).ToList(),
         CostPrice = currentUser.HasPermission(ProductPermissions.ReadCost) ? product.CostPrice : null,
         SalePrice = currentUser.HasPermission(ProductPermissions.ReadSalePrice) ? product.SalePrice : null,
-        Quantity = currentUser.HasPermission(StockPermissions.Read) ? product.ProductStock?.Quantity : null,
-        MinimumQuantity = currentUser.HasPermission(StockPermissions.Read) ? product.ProductStock?.MinimumQuantity : null
+        Quantity = currentUser.HasPermission(StockPermissions.Read)
+            ? product.ProductStocks.Sum(s => s.Quantity)
+            : null
     };
 
     private static void ValidatePrices(decimal? cost, decimal? sale)

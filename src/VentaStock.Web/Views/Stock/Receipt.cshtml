@@ -7,11 +7,12 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h3 class="fw-bold mb-3">Registrar ingreso</h3>
-                    <p class="text-muted">La cantidad ingresada se suma a las existencias actuales, incluso cuando sean negativas.</p>
+                    <p class="text-muted">La cantidad ingresada se suma a las existencias actuales en esta sucursal, incluso cuando sean negativas.</p>
                     <partial name="_Product" model="Model.Product" />
                     <form autocomplete="off" asp-action="Receipt" asp-route-id="@Model.ProductId" method="post">
                         @Html.AntiForgeryToken()
                         <input asp-for="ProductId" type="hidden" />
+                        <input asp-for="BranchId" type="hidden" />
                         <input asp-for="OperationId" type="hidden" />
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -26,7 +27,7 @@
                             <span asp-validation-for="Reason" class="text-danger"></span>
                         </div>
                         <div class="d-flex justify-content-end gap-2">
-                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Cancelar</a>
                             <button type="submit" class="btn btn-primary">Confirmar ingreso</button>
                         </div>
                     </form>

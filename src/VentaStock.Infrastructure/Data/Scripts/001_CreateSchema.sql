@@ -66,6 +66,14 @@ BEGIN TRY
 
     CREATE INDEX IX_ServiceCategories_CategoryId ON dbo.ServiceCategories(CategoryId);
 
+    CREATE TABLE dbo.Branches (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Branches PRIMARY KEY,
+        Name NVARCHAR(100) NOT NULL CONSTRAINT UQ_Branches_Name UNIQUE,
+        Address NVARCHAR(250) NULL,
+        Phone NVARCHAR(50) NULL,
+        CONSTRAINT CK_Branches_Name CHECK (LEN(LTRIM(RTRIM(Name))) > 0)
+    );
+
     CREATE TABLE dbo.Products (
         Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Products PRIMARY KEY,
         Name NVARCHAR(150) NOT NULL CONSTRAINT UQ_Products_Name UNIQUE,
@@ -73,8 +81,6 @@ BEGIN TRY
         Barcode NVARCHAR(100) NOT NULL
             CONSTRAINT DF_Products_Barcode DEFAULT (N'INT-' + REPLACE(CONVERT(NVARCHAR(36), NEWID()), N'-', N''))
             CONSTRAINT UQ_Products_Barcode UNIQUE,
-        Sector NVARCHAR(50) NULL,
-        Shelf NVARCHAR(50) NULL,
         CostPrice DECIMAL(18,2) NULL,
         SalePrice DECIMAL(18,2) NULL,
         CONSTRAINT CK_Products_Name CHECK (LEN(LTRIM(RTRIM(Name))) > 0),
@@ -96,16 +102,25 @@ BEGIN TRY
     CREATE INDEX IX_ProductCategories_CategoryId ON dbo.ProductCategories(CategoryId);
 
     CREATE TABLE dbo.ProductStocks (
-        ProductId INT NOT NULL CONSTRAINT PK_ProductStocks PRIMARY KEY,
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ProductStocks PRIMARY KEY,
+        ProductId INT NOT NULL,
+        BranchId INT NOT NULL,
         Quantity INT NOT NULL CONSTRAINT DF_ProductStocks_Quantity DEFAULT (0),
         MinimumQuantity INT NOT NULL CONSTRAINT DF_ProductStocks_MinimumQuantity DEFAULT (0),
+        Sector NVARCHAR(50) NULL,
+        Shelf NVARCHAR(50) NULL,
+        CONSTRAINT UQ_ProductStocks_ProductId_BranchId UNIQUE (ProductId, BranchId),
         CONSTRAINT CK_ProductStocks_MinimumQuantity CHECK (MinimumQuantity >= 0),
-        CONSTRAINT FK_ProductStocks_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id) ON DELETE CASCADE
+        CONSTRAINT FK_ProductStocks_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id) ON DELETE CASCADE,
+        CONSTRAINT FK_ProductStocks_Branches FOREIGN KEY (BranchId) REFERENCES dbo.Branches(Id) ON DELETE CASCADE
     );
+
+    CREATE INDEX IX_ProductStocks_BranchId ON dbo.ProductStocks(BranchId);
 
     CREATE TABLE dbo.StockMovements (
         Id BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_StockMovements PRIMARY KEY,
         ProductId INT NOT NULL,
+        BranchId INT NOT NULL,
         UserId INT NULL,
         UserName NVARCHAR(50) NOT NULL,
         MovementType VARCHAR(20) NOT NULL,
@@ -116,6 +131,7 @@ BEGIN TRY
         CreatedAtUtc DATETIME2 NOT NULL CONSTRAINT DF_StockMovements_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
         OperationId UNIQUEIDENTIFIER NOT NULL CONSTRAINT UQ_StockMovements_OperationId UNIQUE,
         CONSTRAINT FK_StockMovements_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id),
+        CONSTRAINT FK_StockMovements_Branches FOREIGN KEY (BranchId) REFERENCES dbo.Branches(Id),
         CONSTRAINT FK_StockMovements_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE SET NULL,
         CONSTRAINT CK_StockMovements_Quantity CHECK (
             QuantityChange <> 0 AND CONVERT(BIGINT, QuantityBefore) + QuantityChange = QuantityAfter
@@ -123,11 +139,12 @@ BEGIN TRY
         CONSTRAINT CK_StockMovements_Type CHECK (
             (MovementType = 'Receipt' AND QuantityChange > 0)
             OR (MovementType = 'Adjustment' AND QuantityAfter >= 0 AND LEN(LTRIM(RTRIM(Reason))) > 0 AND Reason IS NOT NULL)
+            OR (MovementType = 'Sale' AND QuantityChange < 0)
             OR MovementType = 'OpeningBalance'
         )
     );
 
-    CREATE INDEX IX_StockMovements_ProductId_CreatedAtUtc ON dbo.StockMovements(ProductId, CreatedAtUtc DESC, Id DESC);
+    CREATE INDEX IX_StockMovements_ProductId_BranchId_CreatedAtUtc ON dbo.StockMovements(ProductId, BranchId, CreatedAtUtc DESC, Id DESC);
     CREATE INDEX IX_StockMovements_UserId ON dbo.StockMovements(UserId);
 
     CREATE TABLE dbo.Customers (

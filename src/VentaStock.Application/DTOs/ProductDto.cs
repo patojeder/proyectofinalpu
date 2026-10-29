@@ -6,11 +6,8 @@ public class ProductDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Barcode { get; set; } = string.Empty;
-    public string? Sector { get; set; }
-    public string? Shelf { get; set; }
     public List<string> Categories { get; set; } = [];
     public decimal? CostPrice { get; set; }
     public decimal? SalePrice { get; set; }
     public int? Quantity { get; set; }
-    public int? MinimumQuantity { get; set; }
 }

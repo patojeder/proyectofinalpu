@@ -1,0 +1,52 @@
+@model VentaStock.Application.DTOs.StockSettingsDto
+@{ ViewData["Title"] = "Ubicación y stock mínimo"; }
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">Ubicación y stock mínimo</h3>
+                    <p class="text-muted">Configurá el sector, estante de depósito y el stock mínimo de alerta para este producto en la sucursal.</p>
+                    <partial name="_Product" model="Model.Product" />
+                    <form autocomplete="off" asp-action="Settings" asp-route-id="@Model.ProductId" method="post">
+                        @Html.AntiForgeryToken()
+                        <input asp-for="ProductId" type="hidden" />
+                        <input asp-for="BranchId" type="hidden" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <label asp-for="Sector" class="form-label fw-semibold"></label>
+                                <input asp-for="Sector" class="form-control" maxlength="50" autofocus />
+                                <span asp-validation-for="Sector" class="text-danger"></span>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label asp-for="Shelf" class="form-label fw-semibold"></label>
+                                <input asp-for="Shelf" class="form-control" maxlength="50" />
+                                <span asp-validation-for="Shelf" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MinimumQuantity" class="form-label fw-semibold"></label>
+                            <input asp-for="MinimumQuantity" class="form-control" type="number" min="0" step="1" data-no-exponent aria-describedby="minimum-help" />
+                            <div id="minimum-help" class="form-text">Si no se indica, se guarda 0. Este valor no modifica las existencias actuales.</div>
+                            <span asp-validation-for="MinimumQuantity" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar configuración</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

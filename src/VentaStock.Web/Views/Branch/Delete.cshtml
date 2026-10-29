@@ -1,0 +1,31 @@
+@model VentaStock.Application.DTOs.BranchDto
+@{ ViewData["Title"] = "Eliminar sucursal"; }
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 border-top border-4 border-danger">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-danger mb-3">Eliminar sucursal</h4>
+                    <p>¿Querés eliminar definitivamente esta sucursal?</p>
+                    <dl class="bg-light p-3 rounded">
+                        <dt>Nombre</dt>
+                        <dd>@Model.Name</dd>
+                        <dt>Dirección</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</dd>
+                        <dt>Teléfono</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
+                    </dl>
+                    <form autocomplete="off" asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

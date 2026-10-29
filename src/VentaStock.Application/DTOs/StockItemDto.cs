@@ -3,6 +3,8 @@ namespace VentaStock.Application.DTOs;
 public class StockItemDto
 {
     public int ProductId { get; set; }
+    public int BranchId { get; set; }
+    public string BranchName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Barcode { get; set; } = string.Empty;
     public string? Sector { get; set; }

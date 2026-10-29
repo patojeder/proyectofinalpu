@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using VentaStock.Domain.Entities;
@@ -11,6 +11,8 @@ public partial class VentaStockDbContext : DbContext
         : base(options)
     {
     }
+
+    public virtual DbSet<Branch> Branches { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
 
@@ -32,6 +34,15 @@ public partial class VentaStockDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.HasIndex(e => e.Name, "UQ_Branches_Name").IsUnique();
+
+            entity.Property(e => e.Address).HasMaxLength(250);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasIndex(e => e.Name, "UQ_Categories_Name").IsUnique();
@@ -83,8 +94,6 @@ public partial class VentaStockDbContext : DbContext
             entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.SalePrice).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Sector).HasMaxLength(50);
-            entity.Property(e => e.Shelf).HasMaxLength(50);
 
             entity.HasMany(d => d.Categories).WithMany(p => p.Products)
                 .UsingEntity<Dictionary<string, object>>(
@@ -106,12 +115,21 @@ public partial class VentaStockDbContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.ProductId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.ProductId).ValueGeneratedNever();
+            entity.HasIndex(e => e.BranchId, "IX_ProductStocks_BranchId");
 
-            entity.HasOne(d => d.Product).WithOne(p => p.ProductStock)
-                .HasForeignKey<ProductStock>(d => d.ProductId)
+            entity.HasIndex(e => new { e.ProductId, e.BranchId }, "UQ_ProductStocks_ProductId_BranchId").IsUnique();
+
+            entity.Property(e => e.Sector).HasMaxLength(50);
+            entity.Property(e => e.Shelf).HasMaxLength(50);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ProductStocks)
+                .HasForeignKey(d => d.BranchId)
+                .HasConstraintName("FK_ProductStocks_Branches");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductStocks)
+                .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_ProductStocks_Products");
         });
 
@@ -163,7 +181,7 @@ public partial class VentaStockDbContext : DbContext
 
         modelBuilder.Entity<StockMovement>(entity =>
         {
-            entity.HasIndex(e => new { e.ProductId, e.CreatedAtUtc, e.Id }, "IX_StockMovements_ProductId_CreatedAtUtc").IsDescending(false, true, true);
+            entity.HasIndex(e => new { e.ProductId, e.BranchId, e.CreatedAtUtc, e.Id }, "IX_StockMovements_ProductId_BranchId_CreatedAtUtc").IsDescending(false, false, true, true);
 
             entity.HasIndex(e => e.UserId, "IX_StockMovements_UserId");
 
@@ -175,6 +193,11 @@ public partial class VentaStockDbContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Reason).HasMaxLength(500);
             entity.Property(e => e.UserName).HasMaxLength(50);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.StockMovements)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StockMovements_Branches");
 
             entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
                 .HasForeignKey(d => d.ProductId)

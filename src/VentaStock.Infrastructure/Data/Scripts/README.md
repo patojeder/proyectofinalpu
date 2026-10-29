@@ -4,14 +4,14 @@
 
 Crear `VentaStockDb` y ejecutar en orden:
 
-1. `001_CreateSchema.sql`: crea `Users`, `Roles`, `Permissions`, `RolePermissions`, `Categories`, `Services`, `ServiceCategories`, `Products`, `ProductCategories`, `ProductStocks`, `StockMovements` y `Customers`. Requiere una base vacía y no elimina tablas ni datos.
+1. `001_CreateSchema.sql`: crea `Users`, `Roles`, `Permissions`, `RolePermissions`, `Categories`, `Services`, `ServiceCategories`, `Branches`, `Products`, `ProductCategories`, `ProductStocks`, `StockMovements` y `Customers`. Requiere una base vacía y no elimina tablas ni datos.
 2. `002_SeedRolesAndPermissions.sql`: agrega los roles y permisos iniciales sin duplicar los existentes. No crea usuarios ni categorías de prueba.
 
 Ambos scripts seleccionan explícitamente `VentaStockDb`. Las tablas y columnas usan nombres en inglés. No hay columna de baja lógica ni tabla de refresh tokens: el login utiliza cookies de ASP.NET Core.
 
 | Rol | Permisos iniciales |
 |---|---|
-| Dueño | Todos los permisos definidos en el script |
+| Dueño | Todos los permisos definidos en el script + administración exclusiva de sucursales |
 | Gestor de Usuarios | `Users.Read`, `Users.Create`, `Users.Update`, `Users.Delete`, `Users.ResetPassword` |
 | Gestor de Productos | Administración de categorías, servicios y productos; consulta/edición de precios y `Stock.Read` |
 | Gestor de Stock | `Products.Read`, `Products.Create`, `Stock.Read`, `Stock.Receipt`, `Stock.Adjust`, `Stock.ReadMovements`, `Categories.Read` |
@@ -25,17 +25,19 @@ Las tablas, columnas, clases y constantes usan nombres en inglés. Los nombres a
 
 Los identificadores de permisos usan `Modulo.Operacion` en inglés y PascalCase. Deben coincidir con las constantes de `VentaStock.Domain/Security/Permissions`. Las descripciones visibles están en español. Los roles personalizados reciben permisos explícitamente.
 
-Categorías, servicios y productos no admiten nombres repetidos: se valida en Application y mediante restricciones únicas en SQL Server. Los nombres se recortan antes de guardar. La comparación sigue la collation de la base; el entorno local usa comparación sin distinguir mayúsculas.
+Categorías, servicios, sucursales y productos no admiten nombres repetidos: se valida en Application y mediante restricciones únicas en SQL Server. Los nombres se recortan antes de guardar. La comparación sigue la collation de la base; el entorno local usa comparación sin distinguir mayúsculas.
 
 Un servicio tiene nombre, descripción y categorías opcionales, sin precio fijo ni stock. Al eliminarlo se retiran sus asociaciones; una categoría utilizada por servicios o productos no se puede eliminar. Los permisos de alta o edición de servicios incluyen consultar nombres de categorías para completar el formulario, sin conceder su administración.
 
-`Products` guarda nombre, descripción, código de barras, sector, estante y precios opcionales. El nombre y el código son únicos. Si se omite el código, se genera `INT-` más un identificador único. `ProductCategories` asocia las categorías; la aplicación exige al menos una. `ProductStocks` contiene una fila por producto, con cantidad y mínimo iniciales en 0. El mínimo no puede ser negativo; la cantidad sí admite negativos. El ABM no modifica la cantidad disponible.
+`Branches` guarda nombre único obligatorio, dirección y teléfono opcionales. Su ABM es exclusivo del rol `Dueño`. No se puede eliminar una sucursal con existencias distintas de 0 ni con historial de movimientos de stock.
+
+`Products` guarda nombre, descripción, código de barras y precios opcionales. El nombre y el código son únicos. Si se omite el código, se genera `INT-` más un identificador único. `ProductCategories` asocia las categorías; la aplicación exige al menos una. `ProductStocks` contiene una fila por cada par `(ProductId, BranchId)`, con cantidad, stock mínimo, sector y estante de depósito en esa sucursal. El mínimo no puede ser negativo; la cantidad sí admite negativos. Al crear un producto se inicializa su stock en 0 para todas las sucursales existentes, y al crear una sucursal se inicializa en 0 para todos los productos existentes.
 
 Los precios deben estar ambos vacíos o ambos asignados, con costo no negativo y venta mayor al costo. El Gestor de Stock crea productos con ambos valores vacíos y no los consulta. Para editarlos se requieren `Products.UpdatePrices`, `Products.ReadCost` y `Products.ReadSalePrice`.
 
-`StockMovements` registra producto, usuario, nombre del usuario en ese momento, tipo (`Receipt`, `Adjustment` u `OpeningBalance`), variación, saldo anterior/posterior, motivo, fecha UTC e identificador único de operación. `QuantityChange` es BIGINT para admitir diferencias entre los extremos de un saldo INT. Los ingresos son positivos; los ajustes exigen motivo y cantidad final no negativa. El saldo disponible puede ser negativo.
+`StockMovements` registra producto, sucursal, usuario, nombre del usuario en ese momento, tipo (`Receipt`, `Adjustment` u `OpeningBalance`), variación, saldo anterior/posterior, motivo, fecha UTC e identificador único de operación. `QuantityChange` es BIGINT para admitir diferencias entre los extremos de un saldo INT. Los ingresos son positivos; los ajustes exigen motivo y cantidad final no negativa. El saldo disponible puede ser negativo.
 
-Saldo y movimiento se guardan en una sola transacción con bloqueo de actualización de la fila de `ProductStocks`. `OperationId` impide duplicar el mismo formulario. Los ajustes comprueban además el saldo que se mostraba al iniciar el conteo. El código no ofrece edición ni eliminación de movimientos. La clave foránea impide eliminar un producto con historial; si se elimina la cuenta del autor, `UserId` queda NULL y `UserName` se conserva.
+Saldo y movimiento se guardan en una sola transacción con bloqueo de actualización de la fila de `ProductStocks` correspondiente al producto y sucursal. `OperationId` impide duplicar el mismo formulario. Los ajustes comprueban además el saldo que se mostraba al iniciar el conteo. El código no ofrece edición ni eliminación de movimientos. La clave foránea impide eliminar un producto o sucursal con historial; si se elimina la cuenta del autor, `UserId` queda NULL y `UserName` se conserva.
 
 Todavía no hay tablas de ventas. Al incorporarlas, sus claves foráneas también deberán preservar el historial y el descuento de stock deberá integrarse en la transacción de venta.
 
@@ -43,7 +45,7 @@ Todavía no hay tablas de ventas. Al incorporarlas, sus claves foráneas tambié
 
 Los saldos y límites no pertenecen a la ficha del cliente. La integración de T15 deberá impedir volver a Contado con deuda o crédito pendiente y conservar los movimientos históricos. No hay datos financieros en esta tabla.
 
-La aplicación reserva la gestión de cuentas Dueño y la asignación de ese rol al propio Dueño. No se concede ese privilegio mediante permisos de usuarios.
+La aplicación reserva la gestión de cuentas Dueño, la asignación de ese rol y la administración de sucursales al propio Dueño. No se concede ese privilegio mediante permisos de usuarios.
 
 La primera cuenta Dueño se creará por separado con una contraseña hasheada mediante BCrypt. No guardar contraseñas reales ni credenciales iniciales fijas en estos scripts.
 
@@ -61,20 +63,5 @@ No ejecutar el script de creación sobre tablas existentes. Seleccionar la base 
 8. `Updates/008_CreateCustomers.sql`: crea clientes con documento único y versión de concurrencia. No crea cuentas corrientes financieras ni saldos. Se detiene si la tabla ya existe.
 9. `Updates/009_RemoveEmailColumns.sql`: elimina las columnas de correo de `Users` y `Customers`, junto con sus restricciones o índices si existieran. Conserva las cuentas y los clientes, excepto esos datos de correo.
 10. `Updates/010_RequireTemporaryPasswordChange.sql`: agrega el indicador para obligar al usuario a cambiar la contraseña temporal. Las cuentas existentes quedan con `0` y no se les exige un cambio.
-11. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
-
-Para una base que ya tiene productos, stock, historial y clientes, aplicar los pasos 9, 10 y 11. Si todavía no tiene la tabla de clientes, aplicar primero el paso 8. Si todavía no tiene productos o historial, aplicar antes los pasos 6 y 7 que correspondan. No repetir los pasos 6, 7 u 8 si sus tablas ya existen. Las bases nuevas creadas con el esquema actual ya incluyen estas tablas y el indicador de cambio de contraseña; no tienen columnas de correo y solo necesitan el seed.
-
-Los pasos 1 y 2 se aplican solo si la base todavía tiene columnas o permisos antiguos. Los pasos 3 y 4 son para la base anterior en español; no ejecutarlos sobre una inicialización nueva con `001_CreateSchema.sql`. El paso 5 se aplica a bases que tengan los nombres de roles anteriores en inglés. El paso 9 puede ejecutarse luego de crear `Users` y `Customers`; si el esquema ya no tiene esas columnas, no hace cambios.
-
-Cerrar sesión y volver a ingresar después de normalizar permisos o renombrar roles, porque las cookies existentes conservan sus claims anteriores.
-
-## Database First
-
-Después de aplicar el esquema, regenerar entidades y DbContext con EF Core y adaptar las referencias a las columnas retiradas. Cambiar los archivos SQL no modifica una base existente ni actualiza por sí solo el modelo de C#.
-
-Las entidades están en `VentaStock.Domain/Entities` y el contexto en `VentaStock.Infrastructure/Data`. Usar `--no-onconfiguring` y una conexión por configuración para no incluir credenciales en el código generado. El esquema en inglés genera las entidades `User`, `Role`, `Permission`, `Category`, `Service`, `Product`, `ProductStock`, `StockMovement` y `Customer`; las relaciones de roles/permisos, servicios/categorías y productos/categorías se representan mediante colecciones.
-
-Al regenerar después de renombrar tablas, eliminar los archivos de entidades anteriores en español para no mantener modelos obsoletos. Antes de sobrescribir el modelo, conservar una copia o tener sus cambios confirmados en Git.
-
-Los scripts anteriores se archivaron fuera del repositorio, en `referencias/respaldo/sql-anterior-*`.
+11. `Updates/011_CreateBranchesAndBranchStock.sql`: crea `Branches`, migra `ProductStocks` y `StockMovements` a esquema por sucursal (trasladando `Sector` y `Shelf` desde `Products` hacia `ProductStocks` en una sucursal inicial `Casa Central` si existían datos previos).
+12. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
