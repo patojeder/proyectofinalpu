@@ -23,7 +23,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
 
         int? selectedBranchId = branchId.HasValue && branches.Any(b => b.Id == branchId.Value)
             ? branchId.Value
-            : branches.FirstOrDefault()?.Id;
+            : branches.FirstOrDefault(b => currentUser.CanAccessBranch(b.Id))?.Id ?? branches.FirstOrDefault()?.Id;
 
         var items = selectedBranchId.HasValue
             ? (await repository.GetAllByBranchAsync(selectedBranchId.Value, search, lowStockOnly)).Select(ToDto).ToList()
@@ -32,6 +32,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
         return new StockIndexDto
         {
             BranchId = selectedBranchId,
+            CanOperateInSelectedBranch = selectedBranchId.HasValue && currentUser.CanAccessBranch(selectedBranchId.Value),
             Search = search,
             LowStockOnly = lowStockOnly,
             Branches = branches,
@@ -42,6 +43,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     public async Task<StockReceiptDto?> GetForReceiptAsync(int productId, int branchId)
     {
         RequirePermission(StockPermissions.Receipt);
+        RequireBranchAccess(branchId);
         var stock = await repository.GetByProductAndBranchAsync(productId, branchId);
         return stock is null ? null : new StockReceiptDto
         {
@@ -55,6 +57,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     public async Task<StockAdjustmentDto?> GetForAdjustmentAsync(int productId, int branchId)
     {
         RequirePermission(StockPermissions.Adjust);
+        RequireBranchAccess(branchId);
         var stock = await repository.GetByProductAndBranchAsync(productId, branchId);
         return stock is null ? null : new StockAdjustmentDto
         {
@@ -69,6 +72,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     public async Task<StockSettingsDto?> GetForSettingsAsync(int productId, int branchId)
     {
         RequirePermission(StockPermissions.Adjust);
+        RequireBranchAccess(branchId);
         var stock = await repository.GetByProductAndBranchAsync(productId, branchId);
         return stock is null ? null : new StockSettingsDto
         {
@@ -84,6 +88,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     public async Task<StockHistoryDto?> GetHistoryAsync(int productId, int branchId, StockHistoryFilterDto? filter, int page)
     {
         RequirePermission(StockPermissions.ReadMovements);
+        RequireBranchAccess(branchId);
         page = Math.Clamp(page, 1, 100000);
         var stock = await repository.GetByProductAndBranchAsync(productId, branchId);
         if (stock is null) return null;
@@ -148,6 +153,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     {
         RequirePermission(StockPermissions.Receipt);
         ValidateOperation(dto);
+        RequireBranchAccess(dto.BranchId);
         if (!dto.Quantity.HasValue || dto.Quantity <= 0)
             throw new InvalidOperationException("La cantidad a ingresar debe ser un entero mayor a 0.");
         var reason = NormalizeReason(dto.Reason);
@@ -158,6 +164,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     {
         RequirePermission(StockPermissions.Adjust);
         ValidateOperation(dto);
+        RequireBranchAccess(dto.BranchId);
         if (!dto.CountedQuantity.HasValue || dto.CountedQuantity < 0 || !dto.ExpectedQuantity.HasValue)
             throw new InvalidOperationException("Indicá la cantidad real contada y recargá la pantalla si cambió el stock.");
         var reason = NormalizeReason(dto.Reason);
@@ -172,6 +179,7 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
         RequirePermission(StockPermissions.Adjust);
         if (dto.ProductId <= 0 || dto.BranchId <= 0)
             throw new InvalidOperationException("Seleccioná un producto y una sucursal válidos.");
+        RequireBranchAccess(dto.BranchId);
 
         var sector = string.IsNullOrWhiteSpace(dto.Sector) ? null : dto.Sector.Trim();
         var shelf = string.IsNullOrWhiteSpace(dto.Shelf) ? null : dto.Shelf.Trim();
@@ -217,6 +225,12 @@ public class StockService(IStockRepository repository, ICurrentUser currentUser)
     private void RequirePermission(string permission)
     {
         if (!currentUser.IsAuthenticated || !currentUser.HasPermission(permission))
+            throw new UnauthorizedAccessException();
+    }
+
+    private void RequireBranchAccess(int branchId)
+    {
+        if (!currentUser.CanAccessBranch(branchId))
             throw new UnauthorizedAccessException();
     }
 }

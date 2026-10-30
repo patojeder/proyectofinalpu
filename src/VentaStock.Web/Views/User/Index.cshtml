@@ -34,7 +34,7 @@
 
     <form asp-action="Index" method="get" autocomplete="off" class="row g-2 align-items-end mb-3">
         <div class="col-md-6">
-            <label for="search" class="form-label">Buscar por usuario o rol</label>
+            <label for="search" class="form-label">Buscar por usuario, rol o sucursal</label>
             <input type="search" id="search" name="search" value="@searchTerm" class="form-control" maxlength="150" />
         </div>
         <div class="col-auto">
@@ -53,6 +53,7 @@
                     <tr>
                         <th>Usuario</th>
                         <th>Rol</th>
+                        <th>Sucursales</th>
                         <th>Fecha de Alta</th>
                         <th class="text-end pe-3">Acciones</th>
                     </tr>
@@ -62,22 +63,37 @@
                     {
                         @foreach (var user in Model)
                         {
+                            var isOwnerUser = string.Equals(user.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
                             <tr>
                                 <td class="fw-bold">@user.UserName</td>
                                 <td>
                                     <span class="badge bg-secondary">@user.Role</span>
                                 </td>
+                                <td>
+                                    @if (isOwnerUser)
+                                    {
+                                        <span class="text-muted">Todas (Dueño)</span>
+                                    }
+                                    else if (user.Branches.Count > 0)
+                                    {
+                                        @string.Join(", ", user.Branches)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin asignar</span>
+                                    }
+                                </td>
                                 <td>@user.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="text-end pe-3">
                                     @if (CurrentUser.HasPermission(UserPermissions.Update) &&
-                                        (CurrentUser.IsOwner || !string.Equals(user.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
+                                        (CurrentUser.IsOwner || !isOwnerUser))
                                     {
                                     <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary me-1">
                                         Editar
                                     </a>
                                     }
                                     @if (CurrentUser.HasPermission(UserPermissions.Delete) &&
-                                        (CurrentUser.IsOwner || !string.Equals(user.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase)))
+                                        (CurrentUser.IsOwner || !isOwnerUser))
                                     {
                                     <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger">
                                         Eliminar
@@ -90,7 +106,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-center py-4 text-muted">
+                            <td colspan="5" class="text-center py-4 text-muted">
                                 @(string.IsNullOrEmpty(searchTerm) ? "No hay usuarios registrados." : "No se encontraron usuarios con ese criterio.")
                             </td>
                         </tr>

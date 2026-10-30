@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace VentaStock.Domain.Entities;
@@ -20,4 +20,6 @@ public partial class User
     public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+
+    public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
 }

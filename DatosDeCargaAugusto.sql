@@ -21,6 +21,7 @@ IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Categories', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Services', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Branches', N'U') IS NULL
+    OR OBJECT_ID(N'dbo.UserBranches', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Products', N'U') IS NULL
     OR OBJECT_ID(N'dbo.ProductStocks', N'U') IS NULL
     OR OBJECT_ID(N'dbo.Customers', N'U') IS NULL
@@ -100,6 +101,23 @@ BEGIN TRY
         (N'Casa Central', N'Av. Principal 100', N'3814000100'),
         (N'Sucursal Norte', N'Av. Aconquija 1500', N'3814000200')) v(Name, Address, Phone)
         ON b.Name = v.Name;
+
+    INSERT INTO dbo.UserBranches (UserId, BranchId)
+    SELECT u.Id, b.Id
+    FROM (VALUES
+        (N'GestorUsuarios', N'Casa Central'),
+        (N'GestorProductos', N'Casa Central'),
+        (N'GestorProductos', N'Sucursal Norte'),
+        (N'GestorStock', N'Casa Central'),
+        (N'GestorPrecios', N'Casa Central'),
+        (N'GestorClientes', N'Casa Central'),
+        (N'Vendedor', N'Casa Central')) v(UserName, BranchName)
+    INNER JOIN dbo.Users u ON u.UserName = v.UserName
+    INNER JOIN dbo.Branches b ON b.Name = v.BranchName
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.UserBranches ub
+        WHERE ub.UserId = u.Id AND ub.BranchId = b.Id
+    );
 
     INSERT INTO dbo.Categories (Name, Description)
     SELECT v.Name, v.Description
@@ -202,6 +220,7 @@ END CATCH;
 
 SELECT N'Usuarios' AS Tipo, COUNT(*) AS Cantidad FROM dbo.Users
 UNION ALL SELECT N'Sucursales', COUNT(*) FROM dbo.Branches
+UNION ALL SELECT N'Asignaciones Usuario-Sucursal', COUNT(*) FROM dbo.UserBranches
 UNION ALL SELECT N'Categorías', COUNT(*) FROM dbo.Categories
 UNION ALL SELECT N'Servicios', COUNT(*) FROM dbo.Services
 UNION ALL SELECT N'Productos', COUNT(*) FROM dbo.Products

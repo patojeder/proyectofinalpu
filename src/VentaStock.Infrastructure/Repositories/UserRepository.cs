@@ -22,6 +22,7 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.Role)
                 .ThenInclude(r => r.Permissions)
+            .Include(u => u.Branches)
             .FirstOrDefaultAsync(u => u.UserName == username);
     }
 
@@ -31,6 +32,7 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .Include(u => u.Role)
                 .ThenInclude(r => r.Permissions)
+            .Include(u => u.Branches)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
@@ -38,6 +40,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .Include(u => u.Role)
+            .Include(u => u.Branches)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
@@ -45,11 +48,14 @@ public class UserRepository : IUserRepository
     {
         IQueryable<User> query = _context.Users
             .Include(u => u.Role)
+            .Include(u => u.Branches)
             .AsNoTracking();
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var term = searchTerm.Trim();
-            query = query.Where(u => u.UserName.Contains(term) || u.Role.Name.Contains(term));
+            query = query.Where(u => u.UserName.Contains(term)
+                || u.Role.Name.Contains(term)
+                || u.Branches.Any(b => b.Name.Contains(term)));
         }
 
         return await query.OrderBy(u => u.UserName).ToListAsync();
@@ -92,6 +98,8 @@ public class UserRepository : IUserRepository
             if (_context.Entry(trackedUser).State == EntityState.Detached)
                 throw new InvalidOperationException("El usuario ya no existe.");
 
+            await _context.Entry(trackedUser).Collection(u => u.Branches).LoadAsync();
+
             var newRole = await _context.Roles.AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == user.RoleId)
                 ?? throw new InvalidOperationException("El rol seleccionado no existe.");
@@ -107,6 +115,12 @@ public class UserRepository : IUserRepository
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
                 trackedUser.PasswordHash = user.PasswordHash;
+            }
+
+            trackedUser.Branches.Clear();
+            foreach (var branch in user.Branches)
+            {
+                trackedUser.Branches.Add(branch);
             }
 
             await _context.SaveChangesAsync();

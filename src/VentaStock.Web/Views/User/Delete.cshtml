@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Eliminar Usuario";
+    var isOwnerUser = string.Equals(Model.Role, SystemRoles.Owner, StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container mt-4">
@@ -21,6 +22,11 @@
                         <dt class="col-sm-4 text-muted">Rol:</dt>
                         <dd class="col-sm-8">
                             <span class="badge bg-secondary">@Model.Role</span>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Sucursales:</dt>
+                        <dd class="col-sm-8">
+                            @(isOwnerUser ? "Todas (Dueño)" : (Model.Branches.Count == 0 ? "Sin asignar" : string.Join(", ", Model.Branches)))
                         </dd>
                     </dl>
 

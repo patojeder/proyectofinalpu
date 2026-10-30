@@ -12,4 +12,5 @@ public interface IUserService
     Task UpdateAsync(EditUserDto dto);
     Task DeleteAsync(int userId);
     Task<IEnumerable<RoleSelectDto>> GetRolesForSelectAsync();
+    Task<IEnumerable<BranchSelectDto>> GetBranchesForSelectAsync();
 }

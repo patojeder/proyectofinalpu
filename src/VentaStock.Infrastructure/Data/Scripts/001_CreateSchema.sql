@@ -74,6 +74,16 @@ BEGIN TRY
         CONSTRAINT CK_Branches_Name CHECK (LEN(LTRIM(RTRIM(Name))) > 0)
     );
 
+    CREATE TABLE dbo.UserBranches (
+        UserId INT NOT NULL,
+        BranchId INT NOT NULL,
+        CONSTRAINT PK_UserBranches PRIMARY KEY (UserId, BranchId),
+        CONSTRAINT FK_UserBranches_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE,
+        CONSTRAINT FK_UserBranches_Branches FOREIGN KEY (BranchId) REFERENCES dbo.Branches(Id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IX_UserBranches_BranchId ON dbo.UserBranches(BranchId);
+
     CREATE TABLE dbo.Products (
         Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Products PRIMARY KEY,
         Name NVARCHAR(150) NOT NULL CONSTRAINT UQ_Products_Name UNIQUE,

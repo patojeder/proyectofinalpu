@@ -32,6 +32,13 @@
                             <span asp-validation-for="RoleId" class="text-danger small"></span>
                         </div>
 
+                        <div class="mb-3">
+                            <label asp-for="BranchIds" class="form-label"></label>
+                            <select asp-for="BranchIds" asp-items="ViewBag.Branches" class="form-select" multiple size="4" aria-describedby="branches-help"></select>
+                            <div id="branches-help" class="form-text">Seleccioná una o más sucursales con Ctrl (el rol Dueño opera en todas las sucursales automáticamente).</div>
+                            <span asp-validation-for="BranchIds" class="text-danger small"></span>
+                        </div>
+
                         @if (CurrentUser.HasPermission(UserPermissions.ResetPassword))
                         {
                         <hr class="my-4" />

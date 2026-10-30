@@ -10,6 +10,13 @@ public sealed class CurrentUser(IHttpContextAccessor accessor) : ICurrentUser
         && id > 0 ? id : null;
     public bool IsAuthenticated => accessor.HttpContext?.User.Identity?.IsAuthenticated == true;
     public bool IsOwner => IsAuthenticated && accessor.HttpContext!.User.IsInRole(SystemRoles.Owner);
+    public IReadOnlyCollection<int> BranchIds => accessor.HttpContext?.User.FindAll("BranchId")
+        .Select(c => int.TryParse(c.Value, out var id) && id > 0 ? id : 0)
+        .Where(id => id > 0)
+        .Distinct()
+        .ToArray() ?? [];
     public bool HasPermission(string permission) => IsAuthenticated &&
         (IsOwner || accessor.HttpContext!.User.HasClaim("Permission", permission));
+    public bool CanAccessBranch(int branchId) => IsAuthenticated &&
+        (IsOwner || BranchIds.Contains(branchId));
 }

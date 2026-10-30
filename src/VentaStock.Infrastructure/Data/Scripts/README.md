@@ -4,14 +4,14 @@
 
 Crear `VentaStockDb` y ejecutar en orden:
 
-1. `001_CreateSchema.sql`: crea `Users`, `Roles`, `Permissions`, `RolePermissions`, `Categories`, `Services`, `ServiceCategories`, `Branches`, `Products`, `ProductCategories`, `ProductStocks`, `StockMovements` y `Customers`. Requiere una base vacía y no elimina tablas ni datos.
+1. `001_CreateSchema.sql`: crea `Users`, `Roles`, `Permissions`, `RolePermissions`, `Categories`, `Services`, `ServiceCategories`, `Branches`, `UserBranches`, `Products`, `ProductCategories`, `ProductStocks`, `StockMovements` y `Customers`. Requiere una base vacía y no elimina tablas ni datos.
 2. `002_SeedRolesAndPermissions.sql`: agrega los roles y permisos iniciales sin duplicar los existentes. No crea usuarios ni categorías de prueba.
 
 Ambos scripts seleccionan explícitamente `VentaStockDb`. Las tablas y columnas usan nombres en inglés. No hay columna de baja lógica ni tabla de refresh tokens: el login utiliza cookies de ASP.NET Core.
 
 | Rol | Permisos iniciales |
 |---|---|
-| Dueño | Todos los permisos definidos en el script + administración exclusiva de sucursales |
+| Dueño | Todos los permisos definidos en el script + administración exclusiva de sucursales + operatoria en todas las sucursales |
 | Gestor de Usuarios | `Users.Read`, `Users.Create`, `Users.Update`, `Users.Delete`, `Users.ResetPassword` |
 | Gestor de Productos | Administración de categorías, servicios y productos; consulta/edición de precios y `Stock.Read` |
 | Gestor de Stock | `Products.Read`, `Products.Create`, `Stock.Read`, `Stock.Receipt`, `Stock.Adjust`, `Stock.ReadMovements`, `Categories.Read` |
@@ -29,13 +29,13 @@ Categorías, servicios, sucursales y productos no admiten nombres repetidos: se 
 
 Un servicio tiene nombre, descripción y categorías opcionales, sin precio fijo ni stock. Al eliminarlo se retiran sus asociaciones; una categoría utilizada por servicios o productos no se puede eliminar. Los permisos de alta o edición de servicios incluyen consultar nombres de categorías para completar el formulario, sin conceder su administración.
 
-`Branches` guarda nombre único obligatorio, dirección y teléfono opcionales. Su ABM es exclusivo del rol `Dueño`. No se puede eliminar una sucursal con existencias distintas de 0 ni con historial de movimientos de stock.
+`Branches` guarda nombre único obligatorio, dirección y teléfono opcionales. Su ABM es exclusivo del rol `Dueño`. No se puede eliminar una sucursal con existencias distintas de 0 ni con historial de movimientos de stock. `UserBranches` vincula los empleados (`Users`) con una o varias sucursales en las que trabajan; el `Dueño` opera en todas las sucursales sin restricción. En el módulo de Stock todos los usuarios con permiso pueden consultar las existencias de todas las sucursales, pero el historial de movimientos y las modificaciones (`Ingreso`, `Ajuste` y configuración de `Ubicación / Mín.`) solo están habilitados para las sucursales asignadas al empleado.
 
 `Products` guarda nombre, descripción, código de barras y precios opcionales. El nombre y el código son únicos. Si se omite el código, se genera `INT-` más un identificador único. `ProductCategories` asocia las categorías; la aplicación exige al menos una. `ProductStocks` contiene una fila por cada par `(ProductId, BranchId)`, con cantidad, stock mínimo, sector y estante de depósito en esa sucursal. El mínimo no puede ser negativo; la cantidad sí admite negativos. Al crear un producto se inicializa su stock en 0 para todas las sucursales existentes, y al crear una sucursal se inicializa en 0 para todos los productos existentes.
 
 Los precios deben estar ambos vacíos o ambos asignados, con costo no negativo y venta mayor al costo. El Gestor de Stock crea productos con ambos valores vacíos y no los consulta. Para editarlos se requieren `Products.UpdatePrices`, `Products.ReadCost` y `Products.ReadSalePrice`.
 
-`StockMovements` registra producto, sucursal, usuario, nombre del usuario en ese momento, tipo (`Receipt`, `Adjustment` u `OpeningBalance`), variación, saldo anterior/posterior, motivo, fecha UTC e identificador único de operación. `QuantityChange` es BIGINT para admitir diferencias entre los extremos de un saldo INT. Los ingresos son positivos; los ajustes exigen motivo y cantidad final no negativa. El saldo disponible puede ser negativo.
+`StockMovements` registra producto, sucursal, usuario, nombre del usuario en ese momento, tipo (`Receipt`, `Adjustment`, `Sale` u `OpeningBalance`), variación, saldo anterior/posterior, motivo, fecha UTC e identificador único de operación. `QuantityChange` es BIGINT para admitir diferencias entre los extremos de un saldo INT. Los ingresos son positivos; los ajustes exigen motivo y cantidad final no negativa. El saldo disponible puede ser negativo.
 
 Saldo y movimiento se guardan en una sola transacción con bloqueo de actualización de la fila de `ProductStocks` correspondiente al producto y sucursal. `OperationId` impide duplicar el mismo formulario. Los ajustes comprueban además el saldo que se mostraba al iniciar el conteo. El código no ofrece edición ni eliminación de movimientos. La clave foránea impide eliminar un producto o sucursal con historial; si se elimina la cuenta del autor, `UserId` queda NULL y `UserName` se conserva.
 
@@ -64,4 +64,5 @@ No ejecutar el script de creación sobre tablas existentes. Seleccionar la base 
 9. `Updates/009_RemoveEmailColumns.sql`: elimina las columnas de correo de `Users` y `Customers`, junto con sus restricciones o índices si existieran. Conserva las cuentas y los clientes, excepto esos datos de correo.
 10. `Updates/010_RequireTemporaryPasswordChange.sql`: agrega el indicador para obligar al usuario a cambiar la contraseña temporal. Las cuentas existentes quedan con `0` y no se les exige un cambio.
 11. `Updates/011_CreateBranchesAndBranchStock.sql`: crea `Branches`, migra `ProductStocks` y `StockMovements` a esquema por sucursal (trasladando `Sector` y `Shelf` desde `Products` hacia `ProductStocks` en una sucursal inicial `Casa Central` si existían datos previos).
-12. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.
+12. `Updates/012_CreateUserBranches.sql`: crea `UserBranches` para relacionar empleados con las sucursales en las que trabajan.
+13. `002_SeedRolesAndPermissions.sql`: incorpora los permisos y asignaciones base que falten, incluidos los de clientes y el rol Gestor de Clientes.

@@ -9,7 +9,7 @@
     var canReadStock = CurrentUser.HasPermission(StockPermissions.Read);
     var canManagePrices = canReadCost && canReadSale && CurrentUser.HasPermission(ProductPermissions.UpdatePrices);
     var showActions = canUpdate || canDelete || canManagePrices;
-    var columnCount = 4 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 1 : 0) + (showActions ? 1 : 0);
+    var columnCount = 4 + (canReadCost ? 1 : 0) + (canReadSale ? 1 : 0) + (canReadStock ? 2 : 0) + (showActions ? 1 : 0);
     var searchTerm = ViewData["SearchTerm"] as string ?? string.Empty;
 }
 
@@ -59,7 +59,11 @@
                         <th>Categorías</th>
                         @if (canReadCost) { <th>Costo</th> }
                         @if (canReadSale) { <th>Precio de venta</th> }
-                        @if (canReadStock) { <th>Existencias totales</th> }
+                        @if (canReadStock)
+                        {
+                            <th>Existencias totales</th>
+                            <th>Existencias por sucursal</th>
+                        }
                         @if (showActions) { <th class="text-end">Acciones</th> }
                     </tr>
                 </thead>
@@ -80,6 +84,22 @@
                             @if (canReadStock)
                             {
                                 <td>@(item.Quantity?.ToString() ?? "0")</td>
+                                <td>
+                                    @if (item.BranchStocks.Count == 0)
+                                    {
+                                        <span class="text-muted">Sin sucursales</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var branchStock in item.BranchStocks)
+                                        {
+                                            <div>
+                                                <span class="fw-semibold">@branchStock.BranchName:</span>
+                                                <span class="@(branchStock.Quantity < 0 ? "text-danger fw-bold" : "")">@branchStock.Quantity</span>
+                                            </div>
+                                        }
+                                    }
+                                </td>
                             }
                             @if (showActions)
                             {

@@ -224,6 +224,22 @@ public partial class VentaStockDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Users_Roles");
+
+            entity.HasMany(d => d.Branches).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserBranch",
+                    r => r.HasOne<Branch>().WithMany()
+                        .HasForeignKey("BranchId")
+                        .HasConstraintName("FK_UserBranches_Branches"),
+                    l => l.HasOne<User>().WithMany()
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("FK_UserBranches_Users"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "BranchId");
+                        j.ToTable("UserBranches");
+                        j.HasIndex(new[] { "BranchId" }, "IX_UserBranches_BranchId");
+                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -16,6 +16,7 @@ public static class UserClaimsPrincipalFactory
             new("CredentialVersion", user.CredentialVersion)
         };
         claims.AddRange(user.Permissions.Select(permission => new Claim("Permission", permission)));
+        claims.AddRange(user.BranchIds.Distinct().Select(branchId => new Claim("BranchId", branchId.ToString())));
         if (user.MustChangePassword)
             claims.Add(new Claim("MustChangePassword", "true"));
         return new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
@@ -32,6 +33,8 @@ public static class UserClaimsPrincipalFactory
             && current.FindFirst(ClaimTypes.Role)?.Value == updated.FindFirst(ClaimTypes.Role)?.Value
             && current.FindFirst("MustChangePassword")?.Value == updated.FindFirst("MustChangePassword")?.Value
             && current.FindAll("Permission").Select(claim => claim.Value).OrderBy(value => value)
-                .SequenceEqual(updated.FindAll("Permission").Select(claim => claim.Value).OrderBy(value => value));
+                .SequenceEqual(updated.FindAll("Permission").Select(claim => claim.Value).OrderBy(value => value))
+            && current.FindAll("BranchId").Select(claim => claim.Value).OrderBy(value => value)
+                .SequenceEqual(updated.FindAll("BranchId").Select(claim => claim.Value).OrderBy(value => value));
     }
 }

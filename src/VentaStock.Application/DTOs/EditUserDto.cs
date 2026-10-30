@@ -17,6 +17,9 @@ public class EditUserDto
     [Display(Name = "Rol")]
     public int RoleId { get; set; }
 
+    [Display(Name = "Sucursales en las que trabaja")]
+    public List<int> BranchIds { get; set; } = [];
+
     [StringLength(100, MinimumLength = 6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres.")]
     [DataType(DataType.Password)]
     [Display(Name = "Nueva Contraseña (opcional)")]

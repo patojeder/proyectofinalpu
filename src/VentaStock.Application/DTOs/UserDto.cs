@@ -6,5 +6,6 @@ public class UserDto
     public string UserName { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string Role { get; set; } = string.Empty;
+    public List<string> Branches { get; set; } = [];
     public DateTime CreatedAtUtc { get; set; }
 }

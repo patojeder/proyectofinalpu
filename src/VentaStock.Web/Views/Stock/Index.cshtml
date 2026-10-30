@@ -1,10 +1,13 @@
 @model VentaStock.Application.DTOs.StockIndexDto
 @{
     ViewData["Title"] = "Stock";
-    var canReceive = CurrentUser.HasPermission(StockPermissions.Receipt);
-    var canAdjust = CurrentUser.HasPermission(StockPermissions.Adjust);
-    var canReadMovements = CurrentUser.HasPermission(StockPermissions.ReadMovements);
+    var canReceive = CurrentUser.HasPermission(StockPermissions.Receipt) && Model.CanOperateInSelectedBranch;
+    var canAdjust = CurrentUser.HasPermission(StockPermissions.Adjust) && Model.CanOperateInSelectedBranch;
+    var canReadMovements = CurrentUser.HasPermission(StockPermissions.ReadMovements) && Model.CanOperateInSelectedBranch;
     var showActions = canReceive || canAdjust || canReadMovements;
+    var hasRestrictedPermissions = CurrentUser.HasPermission(StockPermissions.Receipt)
+        || CurrentUser.HasPermission(StockPermissions.Adjust)
+        || CurrentUser.HasPermission(StockPermissions.ReadMovements);
 }
 
 <div class="container py-4">
@@ -67,6 +70,13 @@
                 <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Limpiar</a>
             </div>
         </form>
+
+        @if (!Model.CanOperateInSelectedBranch && hasRestrictedPermissions)
+        {
+            <div class="alert alert-info" role="alert">
+                Modo consulta: estás visualizando una sucursal en la que no trabajás. Podés consultar las existencias actuales, pero los ingresos, ajustes, configuración e historial solo están habilitados en tus sucursales asignadas.
+            </div>
+        }
 
         <div class="card shadow-sm border-0">
             <div class="table-responsive">

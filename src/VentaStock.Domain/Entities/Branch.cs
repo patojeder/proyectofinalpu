@@ -16,5 +16,6 @@ public partial class Branch
     public virtual ICollection<ProductStock> ProductStocks { get; set; } = new List<ProductStock>();
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
-}
 
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
+}

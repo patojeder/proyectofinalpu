@@ -122,19 +122,32 @@ public class ProductService(
         product.Categories = categories;
     }
 
-    private ProductDto ToDto(Product product) => new()
+    private ProductDto ToDto(Product product)
     {
-        Id = product.Id,
-        Name = product.Name,
-        Description = product.Description,
-        Barcode = product.Barcode,
-        Categories = product.Categories.OrderBy(c => c.Name).Select(c => c.Name).ToList(),
-        CostPrice = currentUser.HasPermission(ProductPermissions.ReadCost) ? product.CostPrice : null,
-        SalePrice = currentUser.HasPermission(ProductPermissions.ReadSalePrice) ? product.SalePrice : null,
-        Quantity = currentUser.HasPermission(StockPermissions.Read)
-            ? product.ProductStocks.Sum(s => s.Quantity)
-            : null
-    };
+        var canReadStock = currentUser.HasPermission(StockPermissions.Read);
+        return new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Barcode = product.Barcode,
+            Categories = product.Categories.OrderBy(c => c.Name).Select(c => c.Name).ToList(),
+            CostPrice = currentUser.HasPermission(ProductPermissions.ReadCost) ? product.CostPrice : null,
+            SalePrice = currentUser.HasPermission(ProductPermissions.ReadSalePrice) ? product.SalePrice : null,
+            Quantity = canReadStock ? product.ProductStocks.Sum(s => s.Quantity) : null,
+            BranchStocks = canReadStock
+                ? product.ProductStocks
+                    .OrderBy(s => s.Branch.Name)
+                    .Select(s => new ProductBranchStockDto
+                    {
+                        BranchId = s.BranchId,
+                        BranchName = s.Branch.Name,
+                        Quantity = s.Quantity
+                    })
+                    .ToList()
+                : []
+        };
+    }
 
     private static void ValidatePrices(decimal? cost, decimal? sale)
     {

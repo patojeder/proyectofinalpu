@@ -6,9 +6,9 @@ public interface IBranchRepository
 {
     Task<IEnumerable<Branch>> GetAllAsync(string? searchTerm = null);
     Task<Branch?> GetByIdAsync(int id);
+    Task<List<Branch>> GetByIdsAsync(IEnumerable<int> ids);
     Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
     Task CreateAsync(Branch branch);
     Task UpdateAsync(Branch branch);
     Task DeleteAsync(int id);
 }
-

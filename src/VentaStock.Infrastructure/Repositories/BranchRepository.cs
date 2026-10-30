@@ -25,6 +25,9 @@ public class BranchRepository(VentaStockDbContext context) : IBranchRepository
     public Task<Branch?> GetByIdAsync(int id) =>
         context.Branches.FirstOrDefaultAsync(b => b.Id == id);
 
+    public Task<List<Branch>> GetByIdsAsync(IEnumerable<int> ids) =>
+        context.Branches.Where(b => ids.Contains(b.Id)).ToListAsync();
+
     public Task<bool> ExistsByNameAsync(string name, int? excludeId = null) =>
         context.Branches.AnyAsync(b => b.Name == name && (!excludeId.HasValue || b.Id != excludeId.Value));
 
@@ -87,4 +90,3 @@ public class BranchRepository(VentaStockDbContext context) : IBranchRepository
         }
     }
 }
-

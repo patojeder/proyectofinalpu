@@ -1,5 +1,12 @@
 namespace VentaStock.Application.DTOs;
 
+public class ProductBranchStockDto
+{
+    public int BranchId { get; set; }
+    public string BranchName { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+}
+
 public class ProductDto
 {
     public int Id { get; set; }
@@ -10,4 +17,5 @@ public class ProductDto
     public decimal? CostPrice { get; set; }
     public decimal? SalePrice { get; set; }
     public int? Quantity { get; set; }
+    public List<ProductBranchStockDto> BranchStocks { get; set; } = [];
 }

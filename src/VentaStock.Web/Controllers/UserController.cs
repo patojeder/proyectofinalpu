@@ -33,7 +33,7 @@ public class UserController : Controller
     [Authorize(Policy = UserPermissions.Create)]
     public async Task<IActionResult> Create()
     {
-        await LoadRolesAsync();
+        await LoadFormListsAsync();
         return View(new CreateUserDto());
     }
 
@@ -44,7 +44,7 @@ public class UserController : Controller
     {
         if (!ModelState.IsValid)
         {
-            await LoadRolesAsync(dto.RoleId);
+            await LoadFormListsAsync(dto.RoleId, dto.BranchIds);
             return View(dto);
         }
 
@@ -57,7 +57,7 @@ public class UserController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await LoadRolesAsync(dto.RoleId);
+            await LoadFormListsAsync(dto.RoleId, dto.BranchIds);
             return View(dto);
         }
     }
@@ -71,7 +71,7 @@ public class UserController : Controller
             return NotFound();
         }
 
-        await LoadRolesAsync(dto.RoleId);
+        await LoadFormListsAsync(dto.RoleId, dto.BranchIds);
         return View(dto);
     }
 
@@ -87,7 +87,7 @@ public class UserController : Controller
 
         if (!ModelState.IsValid)
         {
-            await LoadRolesAsync(dto.RoleId);
+            await LoadFormListsAsync(dto.RoleId, dto.BranchIds);
             return View(dto);
         }
 
@@ -100,7 +100,7 @@ public class UserController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await LoadRolesAsync(dto.RoleId);
+            await LoadFormListsAsync(dto.RoleId, dto.BranchIds);
             return View(dto);
         }
     }
@@ -139,9 +139,11 @@ public class UserController : Controller
         ? RedirectToAction(nameof(Index))
         : RedirectToAction("Index", "Home");
 
-    private async Task LoadRolesAsync(int? selectedRoleId = null)
+    private async Task LoadFormListsAsync(int? selectedRoleId = null, IEnumerable<int>? selectedBranchIds = null)
     {
         var roles = await _userService.GetRolesForSelectAsync();
+        var branches = await _userService.GetBranchesForSelectAsync();
         ViewBag.Roles = new SelectList(roles, nameof(RoleSelectDto.RoleId), nameof(RoleSelectDto.Name), selectedRoleId);
+        ViewBag.Branches = new MultiSelectList(branches, nameof(BranchSelectDto.Id), nameof(BranchSelectDto.Name), selectedBranchIds);
     }
 }

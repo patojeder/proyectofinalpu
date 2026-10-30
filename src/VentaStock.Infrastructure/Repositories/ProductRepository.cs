@@ -13,6 +13,7 @@ public class ProductRepository(VentaStockDbContext context) : IProductRepository
         IQueryable<Product> query = context.Products
             .Include(p => p.Categories)
             .Include(p => p.ProductStocks)
+                .ThenInclude(ps => ps.Branch)
             .AsNoTracking();
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -29,6 +30,7 @@ public class ProductRepository(VentaStockDbContext context) : IProductRepository
     public Task<Product?> GetByIdAsync(int id) => context.Products
         .Include(p => p.Categories)
         .Include(p => p.ProductStocks)
+            .ThenInclude(ps => ps.Branch)
         .FirstOrDefaultAsync(p => p.Id == id);
 
     public Task<bool> ExistsByNameAsync(string name, int? excludeId = null) => context.Products

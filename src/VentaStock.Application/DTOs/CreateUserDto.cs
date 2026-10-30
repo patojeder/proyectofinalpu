@@ -14,6 +14,9 @@ public class CreateUserDto
     [Display(Name = "Rol")]
     public int RoleId { get; set; }
 
+    [Display(Name = "Sucursales en las que trabaja")]
+    public List<int> BranchIds { get; set; } = [];
+
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
     [DataType(DataType.Password)]

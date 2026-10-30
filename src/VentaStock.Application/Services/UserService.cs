@@ -13,13 +13,20 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
+    private readonly IBranchRepository _branchRepository;
     private readonly IMapper _mapper;
     private readonly ICurrentUser _currentUser;
 
-    public UserService(IUserRepository userRepository, IRoleRepository roleRepository, IMapper mapper, ICurrentUser currentUser)
+    public UserService(
+        IUserRepository userRepository,
+        IRoleRepository roleRepository,
+        IBranchRepository branchRepository,
+        IMapper mapper,
+        ICurrentUser currentUser)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
+        _branchRepository = branchRepository;
         _mapper = mapper;
         _currentUser = currentUser;
     }
@@ -34,6 +41,18 @@ public class UserService : IUserService
         {
             RoleId = r.Id,
             Name = r.Name
+        });
+    }
+
+    public async Task<IEnumerable<BranchSelectDto>> GetBranchesForSelectAsync()
+    {
+        if (!_currentUser.HasPermission(UserPermissions.Create) && !_currentUser.HasPermission(UserPermissions.Update))
+            throw new UnauthorizedAccessException();
+        var branches = await _branchRepository.GetAllAsync();
+        return branches.Select(b => new BranchSelectDto
+        {
+            Id = b.Id,
+            Name = b.Name
         });
     }
 
@@ -70,7 +89,8 @@ public class UserService : IUserService
     public async Task CreateAsync(CreateUserDto dto)
     {
         RequirePermission(UserPermissions.Create);
-        await RequireAssignableRoleAsync(dto.RoleId);
+        var role = await RequireAssignableRoleAsync(dto.RoleId);
+        var branches = await ResolveBranchesForRoleAsync(role, dto.BranchIds);
         if (await _userRepository.ExistsUsernameAsync(dto.UserName.Trim()))
             throw new InvalidOperationException("El nombre de usuario ingresado ya se encuentra registrado.");
 
@@ -82,7 +102,8 @@ public class UserService : IUserService
             RoleId = dto.RoleId,
             PasswordHash = hashedPassword,
             MustChangePassword = true,
-            CreatedAtUtc = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            Branches = branches
         };
 
         await _userRepository.CreateAsync(user);
@@ -96,7 +117,8 @@ public class UserService : IUserService
             throw new InvalidOperationException($"El usuario con ID {dto.Id} no existe.");
 
         RequireManageableUser(existingUser);
-        await RequireAssignableRoleAsync(dto.RoleId);
+        var role = await RequireAssignableRoleAsync(dto.RoleId);
+        var branches = await ResolveBranchesForRoleAsync(role, dto.BranchIds);
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
             RequirePermission(UserPermissions.ResetPassword);
 
@@ -119,7 +141,8 @@ public class UserService : IUserService
             UserName = dto.UserName.Trim(),
             RoleId = dto.RoleId,
             PasswordHash = passwordHash,
-            MustChangePassword = mustChangePassword
+            MustChangePassword = mustChangePassword,
+            Branches = branches
         };
 
         await _userRepository.UpdateAsync(proposedUser);
@@ -151,12 +174,28 @@ public class UserService : IUserService
             throw new UnauthorizedAccessException();
     }
 
-    private async Task RequireAssignableRoleAsync(int roleId)
+    private async Task<Role> RequireAssignableRoleAsync(int roleId)
     {
         var role = await _roleRepository.GetByIdAsync(roleId)
             ?? throw new InvalidOperationException("El rol seleccionado no existe.");
         if (!_currentUser.IsOwner && IsOwnerRole(role))
             throw new UnauthorizedAccessException();
+        return role;
     }
 
+    private async Task<List<Branch>> ResolveBranchesForRoleAsync(Role role, List<int>? branchIds)
+    {
+        if (IsOwnerRole(role))
+            return [];
+
+        var ids = (branchIds ?? []).Distinct().ToArray();
+        if (ids.Length == 0 || ids.Any(id => id <= 0))
+            throw new InvalidOperationException("Seleccioná al menos una sucursal para el empleado.");
+
+        var branches = await _branchRepository.GetByIdsAsync(ids);
+        if (branches.Count != ids.Length)
+            throw new InvalidOperationException("Una sucursal seleccionada ya no existe.");
+
+        return branches;
+    }
 }
